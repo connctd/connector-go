@@ -35,7 +35,7 @@ type InstallationRequest struct {
 // InstallationStateUpdateRequest can be sent by a connector to indicate new state
 type InstallationStateUpdateRequest struct {
 	State   InstallationState `json:"state"`
-	Details string            `json:"details"`
+	Details string            `json:"details,omitempty"`
 }
 
 // InstallationResponse defines the struct of a potential response
@@ -77,7 +77,7 @@ type InstantiationResponse struct {
 // InstanceStateUpdateRequest can be sent by a connector to indicate a new state
 type InstanceStateUpdateRequest struct {
 	State   InstanceState `json:"state"`
-	Details string        `json:"details"`
+	Details string        `json:"details,omitempty"`
 }
 
 // StepType defines the type of a further installation or instantiation step
