@@ -106,6 +106,6 @@ type Step struct {
 
 // Configuration is key value pair
 type Configuration struct {
-	ID    string      `json:"id"`
-	Value interface{} `json:"value"`
+	ID    string `json:"id"`
+	Value string `json:"value"`
 }
