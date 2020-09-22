@@ -50,13 +50,13 @@ type InstallationRequest struct {
 // InstallationStateUpdateRequest can be sent by a connector to indicate new state
 type InstallationStateUpdateRequest struct {
 	State   InstallationState `json:"state"`
-	Details string            `json:"details,omitempty"`
+	Details json.RawMessage   `json:"details,omitempty"`
 }
 
 // InstallationResponse defines the struct of a potential response
 type InstallationResponse struct {
-	Details     string `json:"details,omitempty"`
-	FurtherStep Step   `json:"furtherStep,omitempty"`
+	Details     json.RawMessage `json:"details,omitempty"`
+	FurtherStep Step            `json:"furtherStep,omitempty"`
 }
 
 // InstanceToken maps to certain extern subject and can be used to e.g. propagate new things or device changes
@@ -85,14 +85,14 @@ type InstantiationRequest struct {
 
 // InstantiationResponse defines the struct of a potential response
 type InstantiationResponse struct {
-	Details     string `json:"details,omitempty"`
-	FurtherStep Step   `json:"furtherStep,omitempty"`
+	Details     json.RawMessage `json:"details,omitempty"`
+	FurtherStep Step            `json:"furtherStep,omitempty"`
 }
 
 // InstanceStateUpdateRequest can be sent by a connector to indicate a new state
 type InstanceStateUpdateRequest struct {
-	State   InstanceState `json:"state"`
-	Details string        `json:"details,omitempty"`
+	State   InstanceState   `json:"state"`
+	Details json.RawMessage `json:"details,omitempty"`
 }
 
 // StepType defines the type of a further installation or instantiation step
