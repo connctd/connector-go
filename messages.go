@@ -98,8 +98,8 @@ type StepType int
 
 // Step defines a further installation or instantiation step
 type Step struct {
-	Type  StepType `json:"type"`
-	Value string   `json:"value"`
+	Type    StepType `json:"type"`
+	Content string   `json:"content"`
 }
 
 // Configuration is key value pair
