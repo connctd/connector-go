@@ -22,6 +22,7 @@ type Header struct {
 const (
 	StepText     = 1
 	StepMarkdown = 2
+	StepRedirect = 3
 )
 
 // InstallationToken can be used by a connector installation to propagte e.g. state changes
@@ -33,10 +34,7 @@ type InstallationState int
 // definition of instantiation related constants
 const (
 	InstallationStateInitialized = 1
-	InstallationStateTimeout     = 2
-	InstallationStateOngoing     = 3
-	InstallationStateRejected    = 4
-	InstallationStateFailed      = 5
+	// all further states are set internally by connctd
 )
 
 // InstallationRequest sent by connctd in order to signalise a new installation
