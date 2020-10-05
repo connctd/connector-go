@@ -5,19 +5,6 @@ import (
 	"time"
 )
 
-// Message defines a generic message coming from connctd backend
-type Message struct {
-	Header Header          `json:"header"`
-	Body   json.RawMessage `json:"body"`
-}
-
-// Header holds arbitrary data about a message
-type Header struct {
-	MessageID string    `json:"messageId"`
-	Signature string    `json:"signature"`
-	Sent      time.Time `json:"sent"`
-}
-
 // definition of generic constants
 const (
 	StepText     = 1
@@ -43,6 +30,8 @@ type InstallationRequest struct {
 	Token         InstallationToken `json:"token"`
 	State         InstallationState `json:"state"`
 	Configuration []Configuration   `json:"configuration"`
+	MessageID     string            `json:"messageId"`
+	Sent          time.Time         `json:"sent"`
 }
 
 // InstallationStateUpdateRequest can be sent by a connector to indicate new state
