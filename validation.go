@@ -36,8 +36,8 @@ var (
 )
 
 // SignablePayload builds the payload which can be signed
-// Method\r\nRequestURI\r\nHost Header Value\r\nDate Header Value\r\nBody
-// Example: GET\r\n/foo/bar?x=1&y=2\r\n
+// Method\r\nHost\r\nRequestURI\r\nDate Header Value\r\nBody
+// Example: GET\r\nfoo.com:8080\r\n/bar?hello=world\r\nWed, 07 Oct 2020 10:00:00 GMT\r\n{\"hello\":\"world\"}
 func SignablePayload(method string, host string, url *url.URL, headers http.Header, body []byte) ([]byte, error) {
 	var b bytes.Buffer
 
