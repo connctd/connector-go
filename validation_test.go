@@ -33,7 +33,7 @@ func TestSignatureComposition(t *testing.T) {
 		t.Fatalf("Failed to create signable payload: %v", err)
 	}
 
-	expected := "(method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}\r\n"
+	expected := "(method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}"
 
 	if string(toBeSigned) != expected {
 		t.Fatalf("Generated payload and expected payload do not match.\nExpctd: %v\n Given: %v", expected, string(toBeSigned))

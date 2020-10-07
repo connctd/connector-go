@@ -12,6 +12,8 @@ import (
 type signedHeaderKey string
 
 const (
+	SignatureHeaderKey = "Signature"
+
 	// signatureFragmentDelimiter defines how different fragments like headers and
 	// body are concatenated to a signable payload. CRLF is already used as a
 	// separator for http 1.1 headers and payloads (https://tools.ietf.org/html/rfc7230#page-19)
@@ -37,7 +39,7 @@ var signedHeaderKeys = []signedHeaderKey{
 
 // SignablePayload builds the payload which can be signed
 // Method\r\nHost\r\nRequestURI\r\nDate Header Value\r\nBody
-// Example: (method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}\r\n
+// Example: (method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}
 func SignablePayload(method string, host string, url *url.URL, headers http.Header, body []byte) ([]byte, error) {
 	var b bytes.Buffer
 
@@ -71,7 +73,6 @@ func SignablePayload(method string, host string, url *url.URL, headers http.Head
 	b.WriteString("(body)")
 	b.WriteString(keyValueSeparator)
 	b.Write(body)
-	b.WriteString(signatureFragmentDelimiter)
 
 	return b.Bytes(), nil
 }
