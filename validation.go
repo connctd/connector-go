@@ -37,7 +37,7 @@ var signedHeaderKeys = []signedHeaderKey{
 
 // SignablePayload builds the payload which can be signed
 // Method\r\nHost\r\nRequestURI\r\nDate Header Value\r\nBody
-// Example: (method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}
+// Example: (method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}\r\n
 func SignablePayload(method string, host string, url *url.URL, headers http.Header, body []byte) ([]byte, error) {
 	var b bytes.Buffer
 
