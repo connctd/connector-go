@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 // SignedHeaderKey defines a header field name
@@ -39,8 +38,8 @@ var signedHeaderKeys = []signedHeaderKey{
 
 // SignablePayload builds the payload which can be signed
 // Method\r\nHost\r\nRequestURI\r\nDate Header Value\r\nBody
-// Example: (method):GET\r\n(url):https://foo.com:8080/bar?hello=world\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}
-func SignablePayload(method string, host string, url *url.URL, headers http.Header, body []byte) ([]byte, error) {
+// Example: (method):-method-\r\n(url):-scheme-://-host--requestURI-\r\n(Date):Wed, 07 Oct 2020 10:00:00 GMT\r\n(body):{\"hello\":\"world\"}
+func SignablePayload(method string, scheme string, host string, requestURI string, headers http.Header, body []byte) ([]byte, error) {
 	var b bytes.Buffer
 
 	// write method
@@ -52,7 +51,9 @@ func SignablePayload(method string, host string, url *url.URL, headers http.Head
 	// write url
 	b.WriteString("(url)")
 	b.WriteString(keyValueSeparator)
-	b.WriteString(url.String())
+	b.WriteString(scheme + "://")
+	b.WriteString(host)
+	b.WriteString(requestURI)
 	b.WriteString(signatureFragmentDelimiter)
 
 	// write all required headers
