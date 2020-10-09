@@ -11,6 +11,7 @@ import (
 type signedHeaderKey string
 
 const (
+	// SignatureHeaderKey defines header carrying the signature
 	SignatureHeaderKey = "Signature"
 
 	// signatureFragmentDelimiter defines how different fragments like headers and
