@@ -2,7 +2,6 @@ package connector
 
 import (
 	"encoding/json"
-	"time"
 )
 
 // definition of generic constants
@@ -26,12 +25,11 @@ const (
 
 // InstallationRequest sent by connctd in order to signalise a new installation
 type InstallationRequest struct {
+	MessageID     string            `json:"messageId"`
 	ID            string            `json:"id"`
 	Token         InstallationToken `json:"token"`
 	State         InstallationState `json:"state"`
 	Configuration []Configuration   `json:"configuration"`
-	MessageID     string            `json:"messageId"`
-	Sent          time.Time         `json:"sent"`
 }
 
 // InstallationStateUpdateRequest can be sent by a connector to indicate new state
@@ -59,12 +57,12 @@ const (
 
 // InstantiationRequest sent by connctd in order to signalise a new instantiation
 type InstantiationRequest struct {
+	MessageID      string             `json:"messageId"`
 	ID             string             `json:"id"`
 	InstallationID string             `json:"installation_id"`
 	Token          InstantiationToken `json:"token"`
 	State          InstantiationState `json:"state"`
 	Configuration  []Configuration    `json:"configuration"`
-	Timestamp      time.Time          `json:"timestamp"`
 }
 
 // InstantiationResponse defines the struct of a potential response
