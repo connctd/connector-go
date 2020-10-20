@@ -3,7 +3,6 @@ package connector
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -61,7 +60,6 @@ func SignablePayload(method string, scheme string, host string, requestURI strin
 	for _, currHeader := range signedHeaderKeys {
 		value := headers.Get(string(currHeader))
 		if value == "" {
-			fmt.Println(currHeader)
 			return []byte{}, ErrorMissingHeader
 		}
 
