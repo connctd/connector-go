@@ -6,9 +6,9 @@ import (
 
 // definition of generic constants
 const (
-	StepText     = 1
-	StepMarkdown = 2
-	StepRedirect = 3
+	StepText     StepType = 1
+	StepMarkdown StepType = 2
+	StepRedirect StepType = 3
 )
 
 // InstallationToken can be used by a connector installation to propagte e.g. state changes
@@ -19,7 +19,7 @@ type InstallationState int
 
 // definition of instantiation related constants
 const (
-	InstallationStateInitialized = 1
+	InstallationStateInitialized InstallationState = 1
 	// all further states are set internally by connctd
 )
 
@@ -52,7 +52,7 @@ type InstantiationState int
 
 // definition of instantiation states
 const (
-	InstantiationStateInitialized = 1
+	InstantiationStateInitialized InstantiationState = 1
 )
 
 // InstantiationRequest sent by connctd in order to signalise a new instantiation
