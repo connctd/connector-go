@@ -10,6 +10,20 @@ import (
 type signedHeaderKey string
 
 const (
+	// signedHeaderKeyDate stands for the date header
+	signedHeaderKeyDate signedHeaderKey = "Date"
+)
+
+// signedHeaderKeys defines a list of headers that are used to build
+// the payload-to-be-signed. If a request does not contain all of these
+// headers it can't be signed nor validated and thus is invalid.
+// The order of keys inside this list defines how the payload-to-be-signed
+// is constructed
+var signedHeaderKeys = []signedHeaderKey{
+	signedHeaderKeyDate,
+}
+
+const (
 	// SignatureHeaderKey defines header carrying the signature
 	SignatureHeaderKey = "Signature"
 
@@ -22,19 +36,7 @@ const (
 
 	// separates keys from values in constructed payload
 	keyValueSeparator = ":"
-
-	// signedHeaderKeyDate stands for the date header
-	signedHeaderKeyDate = signedHeaderKey("Date")
 )
-
-// signedHeaderKeys defines a list of headers that are used to build
-// the payload-to-be-signed. If a request does not contain all of these
-// headers it can't be signed nor validated and thus is invalid.
-// The order of keys inside this list defines how the payload-to-be-signed
-// is constructed
-var signedHeaderKeys = []signedHeaderKey{
-	signedHeaderKeyDate,
-}
 
 // SignablePayload builds the payload which can be signed
 // Method\r\nHost\r\nRequestURI\r\nDate Header Value\r\nBody
