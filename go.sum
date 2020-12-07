@@ -1,3 +1,9 @@
+github.com/connctd/api-go v0.0.0-20201207133226-c9da9bd8006b h1:U+FYOTf9Axdk7NVpWuRvJ2scyEXK2ASr25XnrOQRqtQ=
+github.com/connctd/api-go v0.0.0-20201207133226-c9da9bd8006b/go.mod h1:CaLzNYu8t2qgQFpOuzYyVQ58ep0FzFks97h/MXOW2GI=
+github.com/connctd/connctd-utils v0.0.0-20201203152709-841da7044600 h1:/AwwUfANSJ7qmw+Haze1tTcTEYE8SSJeUEScE2XzEKc=
+github.com/connctd/connctd-utils v0.0.0-20201203152709-841da7044600/go.mod h1:rGGiKecNBbMcMR9muTXb8t5OLj+Kt3s7nYELDPuJLuc=
+github.com/connctd/connctd-utils v0.0.0-20201203155259-48b91c59bdb9 h1:HpxdgzgnlPq2FiklmdizALG0db77oeDSHnr7ltfAqOs=
+github.com/connctd/connctd-utils v0.0.0-20201203155259-48b91c59bdb9/go.mod h1:rGGiKecNBbMcMR9muTXb8t5OLj+Kt3s7nYELDPuJLuc=
 github.com/go-fed/httpsig v1.0.0 h1:/JKxvztv3Hq0fTYQd1o6sjbDBYa0fPRmTnEM5CVvIEw=
 github.com/go-fed/httpsig v1.0.0/go.mod h1:XS5xuzQuPZkqAIK73sE4qCYnRJUK9rTQJGFHZCg2g1Y=
 github.com/go-fed/httpsig v1.0.1-0.20200711113112-812070f75b67 h1:T4Tv75EmaqlHubh4+cK2eSySNvNA8O6gRB6qwuzfOCM=
