@@ -24,6 +24,7 @@ func NewSignatureValidationHandler(validationPreProcessor ValidationPreProcessor
 	return &signatureValidationHandler{preProcessor: validationPreProcessor, publicKey: publicKey, next: next}
 }
 
+// ServeHTTP handles request
 func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get(crypto.SignatureHeaderKey)
 
