@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -26,7 +25,6 @@ func NewSignatureValidationHandler(validationPreProcessor ValidationPreProcessor
 }
 
 func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Request %v", r)
 	signature := r.Header.Get(crypto.SignatureHeaderKey)
 
 	decodedSignature, err := base64.StdEncoding.DecodeString(signature)
@@ -76,13 +74,15 @@ func DefaultValidationPreProcessor() ValidationPreProcessor {
 		// manually picking https since this is currently the only supported protocol by connctd for callbacks
 		return ValidationParameters{
 			Scheme:     "https",
-			Host:       r.URL.Host,
+			Host:       r.Host,
 			RequestURI: r.URL.RequestURI(),
 		}
 	}
 }
 
-// ProxiedRequestValidationPreProcessor extracts all relevant values from request fields
+// ProxiedRequestValidationPreProcessor allows passing modified headers to validate signature
+// function. This is necessary in case received request headers do not match up with
+// sent request headers because of e.g. proxies in between
 func ProxiedRequestValidationPreProcessor(scheme string, host string, endpoint string) ValidationPreProcessor {
 	return func(r *http.Request) ValidationParameters {
 		return ValidationParameters{
