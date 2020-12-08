@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/connctd/api-go"
 	"github.com/connctd/api-go/crypto"
 )
 
@@ -24,23 +26,27 @@ func NewSignatureValidationHandler(validationPreProcessor ValidationPreProcessor
 }
 
 func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Request %v", r)
 	signature := r.Header.Get(crypto.SignatureHeaderKey)
 
 	decodedSignature, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`Failed to decode signature signature`))
+		ErrorBadSignature.Write(w)
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`Failed to read body`))
-		return
-	}
+	var body []byte
 
-	defer r.Body.Close()
+	// in case body is given
+	if r.ContentLength != 0 {
+		body, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			ErrorInvalidBody.Write(w)
+			return
+		}
+
+		defer r.Body.Close()
+	}
 
 	// apply preprocess and pass values to signing function
 	extractedValues := h.preProcessor(r)
@@ -51,8 +57,7 @@ func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
 		h.next.ServeHTTP(w, r)
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`Bad signature`))
+		ErrorBadSignature.Write(w)
 		return
 	}
 }
@@ -78,10 +83,10 @@ func DefaultValidationPreProcessor() ValidationPreProcessor {
 }
 
 // ProxiedRequestValidationPreProcessor extracts all relevant values from request fields
-func ProxiedRequestValidationPreProcessor(host string, endpoint string) ValidationPreProcessor {
+func ProxiedRequestValidationPreProcessor(scheme string, host string, endpoint string) ValidationPreProcessor {
 	return func(r *http.Request) ValidationParameters {
 		return ValidationParameters{
-			Scheme:     "https",
+			Scheme:     scheme,
 			Host:       host,
 			RequestURI: endpoint,
 		}
@@ -94,3 +99,9 @@ type ValidationParameters struct {
 	Host       string
 	RequestURI string
 }
+
+// some error definitions
+var (
+	ErrorBadSignature = api.NewError("BAD_SIGNATURE", "Signature seems to be invalid", http.StatusBadRequest)
+	ErrorInvalidBody  = api.NewError("INVALID_BODY", "Unable to read message body", http.StatusBadRequest)
+)
