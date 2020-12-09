@@ -25,7 +25,7 @@ const (
 type Client interface {
 	// CreateThing can be used to create a thing. A thingID is returned if
 	// operation was successul. Otherwise an error is thrown.
-	CreateThing(ctx context.Context, thing restapi.Thing) (thingID string, err error)
+	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (thingID string, err error)
 }
 
 // ClientOptions allow modification of api client behaviour
@@ -60,7 +60,7 @@ func NewClient(opts *ClientOptions, logger logr.Logger) Client {
 }
 
 // CreateThing implements interface definition
-func (a *APIClient) CreateThing(ctx context.Context, thing restapi.Thing) (thingID string, err error) {
+func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (thingID string, err error) {
 	message := AddThingRequest{
 		Thing: thing,
 	}
@@ -75,7 +75,9 @@ func (a *APIClient) CreateThing(ctx context.Context, thing restapi.Thing) (thing
 		return "", fmt.Errorf("Failed to create new request: %w", err)
 	}
 
+	// set headers
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+string(token))
 
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
 	if err != nil {

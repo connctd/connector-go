@@ -74,7 +74,7 @@ func TestCreateThing(t *testing.T) {
 			logger := stdr.New(stdlog.New(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile))
 			client := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
 
-			id, err := client.CreateThing(context.Background(), restapi.Thing{Name: "DummyThing"})
+			id, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
