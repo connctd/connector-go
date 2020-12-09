@@ -2,6 +2,8 @@ package connector
 
 import (
 	"encoding/json"
+
+	"github.com/connctd/restapi-go"
 )
 
 // definition of generic constants
@@ -90,4 +92,15 @@ type Step struct {
 type Configuration struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
+}
+
+// AddThingRequest is used to create a new thing on connctd platform
+type AddThingRequest struct {
+	MessageID string        `json:"messageId"`
+	Thing     restapi.Thing `json:"thing"`
+}
+
+// AddThingResponse describes the response sent when thing creation was successful
+type AddThingResponse struct {
+	ID string `json:"id"`
 }
