@@ -1,5 +1,7 @@
 github.com/connctd/api-go v0.0.0-20201207133226-c9da9bd8006b h1:U+FYOTf9Axdk7NVpWuRvJ2scyEXK2ASr25XnrOQRqtQ=
 github.com/connctd/api-go v0.0.0-20201207133226-c9da9bd8006b/go.mod h1:CaLzNYu8t2qgQFpOuzYyVQ58ep0FzFks97h/MXOW2GI=
+github.com/connctd/api-go v0.0.1 h1:uPaViJQnWzQEo0xYGJOnhAAyviR8eJZZIkWrJ48irDU=
+github.com/connctd/api-go v0.0.1/go.mod h1:B1YXvl8/5TvUB1TNoUbpVq+KEqNUZQUjF6nmdKtTG+s=
 github.com/connctd/connctd-utils v0.0.0-20201203152709-841da7044600 h1:/AwwUfANSJ7qmw+Haze1tTcTEYE8SSJeUEScE2XzEKc=
 github.com/connctd/connctd-utils v0.0.0-20201203152709-841da7044600/go.mod h1:rGGiKecNBbMcMR9muTXb8t5OLj+Kt3s7nYELDPuJLuc=
 github.com/connctd/connctd-utils v0.0.0-20201203155259-48b91c59bdb9 h1:HpxdgzgnlPq2FiklmdizALG0db77oeDSHnr7ltfAqOs=
