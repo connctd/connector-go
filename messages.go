@@ -104,3 +104,9 @@ type AddThingRequest struct {
 type AddThingResponse struct {
 	ID string `json:"id"`
 }
+
+// UpdateThingPropertyValueRequest can be used to propagate a new property value
+type UpdateThingPropertyValueRequest struct {
+	MessageID string `json:"messageId"`
+	Value     string `json:"value"`
+}

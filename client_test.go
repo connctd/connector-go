@@ -31,14 +31,14 @@ var createThingTests = []struct {
 	expectedThingID string
 }{
 	{
-		name: "CreateThingFailWithNoResponseBody",
+		name: "Create thing fails on bad response code",
 		handler: func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		},
 		expectedError: ErrorUnexpectedStatusCode,
 	},
 	{
-		name: "CreateThingFailWithResponseBody",
+		name: "Create thing fails on error response body",
 		handler: func(w http.ResponseWriter, r *http.Request) {
 			dummyError := api.NewError("Foo error", "Foo err description", http.StatusBadRequest)
 			dummyError.Write(w)
@@ -46,7 +46,7 @@ var createThingTests = []struct {
 		expectedError: ErrorUnexpectedStatusCode,
 	},
 	{
-		name: "CreateThingSuccess",
+		name: "Create thing successful",
 		handler: func(w http.ResponseWriter, r *http.Request) {
 			response := AddThingResponse{
 				ID: "123",
@@ -106,4 +106,45 @@ func TestParametersValidation(t *testing.T) {
 
 	_, err = NewClient(DefaultOptions(), DefaultLogger)
 	assert.Nil(err)
+}
+
+var updateThingPropetyValueTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	expectedError error
+}{
+	{
+		name: "Update thing property fails on invalid response status",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Update thing property value successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+		expectedError: nil,
+	},
+}
+
+func TestUpdateThingPropertyValue(t *testing.T) {
+	for _, currTest := range updateThingPropetyValueTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL)
+			require.Nil(r, err)
+
+			// use logger based on go's standard logger
+			logger := stdr.New(stdlog.New(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile))
+			client := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
+
+			err = client.UpdateThingPropertyValue(context.Background(), "", "fooThingID", "fooComponentID", "fooPropertyID", "foo")
+			assert.Equal(r, currTest.expectedError, err)
+		})
+	}
+
 }
