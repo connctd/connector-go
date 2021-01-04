@@ -151,7 +151,7 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 	}
 
 	endpoint := path.Join(connectorThingsEndpoint, thingID, "components", componentID, "properties", propertyID)
-	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
+	req, err := http.NewRequest(http.MethodPut, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return fmt.Errorf("Failed to create new thing property value update request: %w", err)
 	}
