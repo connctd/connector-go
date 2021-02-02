@@ -10,6 +10,8 @@ github.com/connctd/connctd-utils v0.0.0-20201203155259-48b91c59bdb9 h1:Hpxdgzgnl
 github.com/connctd/connctd-utils v0.0.0-20201203155259-48b91c59bdb9/go.mod h1:rGGiKecNBbMcMR9muTXb8t5OLj+Kt3s7nYELDPuJLuc=
 github.com/connctd/restapi-go v0.0.0-20201207134343-a350e8826abb h1:RuSUqR0/RhmZaHTB2oxMsADQcaMoYPmNrwOlT8K3RyI=
 github.com/connctd/restapi-go v0.0.0-20201207134343-a350e8826abb/go.mod h1:LcHfnyb/K2HNcnYBj5UlWgIcm32hduyIbGSHS9r8hK4=
+github.com/connctd/restapi-go v0.0.2 h1:xbh/utSS3BzMeuJ/5mOgwoOTUoqkfndbPZQL4AjhEU4=
+github.com/connctd/restapi-go v0.0.2/go.mod h1:LcHfnyb/K2HNcnYBj5UlWgIcm32hduyIbGSHS9r8hK4=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

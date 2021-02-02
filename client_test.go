@@ -67,23 +67,43 @@ func TestCreateThing(t *testing.T) {
 			dummyServer := httptest.NewServer(currTest.handler)
 			defer dummyServer.Close()
 
-			url, err := url.Parse(dummyServer.URL)
+			url, err := url.Parse(dummyServer.URL + "/")
 			require.Nil(r, err)
 
 			// use logger based on go's standard logger
 			logger := stdr.New(stdlog.New(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile))
-			client := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
+			require.Nil(r, err)
 
-			id, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
+			thing, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
 			}
 
 			if currTest.expectedThingID != "" {
-				assert.Equal(r, currTest.expectedThingID, id)
+				assert.Equal(r, currTest.expectedThingID, thing.ID)
 			}
 		})
 	}
+}
 
+func TestParametersValidation(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	_, err := NewClient(DefaultOptions(), nil)
+	assert.Equal(err, ErrorMissingLogger)
+
+	u, err := url.Parse("https://foobar")
+	require.Nil(err)
+
+	badOptions := ClientOptions{
+		ConnctdBaseURL: u,
+	}
+	_, err = NewClient(&badOptions, DefaultLogger)
+	assert.Equal(err, ErrorInvalidBaseURL)
+
+	_, err = NewClient(DefaultOptions(), DefaultLogger)
+	assert.Nil(err)
 }
