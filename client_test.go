@@ -6,12 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
-
-	stdlog "log"
-
-	"github.com/go-logr/stdr"
 
 	"github.com/connctd/api-go"
 	"github.com/connctd/restapi-go"
@@ -70,9 +65,7 @@ func TestCreateThing(t *testing.T) {
 			url, err := url.Parse(dummyServer.URL + "/")
 			require.Nil(r, err)
 
-			// use logger based on go's standard logger
-			logger := stdr.New(stdlog.New(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile))
-			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
 			thing, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
@@ -135,12 +128,11 @@ func TestUpdateThingPropertyValue(t *testing.T) {
 			dummyServer := httptest.NewServer(currTest.handler)
 			defer dummyServer.Close()
 
-			url, err := url.Parse(dummyServer.URL)
+			url, err := url.Parse(dummyServer.URL + "/")
 			require.Nil(r, err)
 
-			// use logger based on go's standard logger
-			logger := stdr.New(stdlog.New(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile))
-			client := NewClient(&ClientOptions{ConnctdBaseURL: url}, logger)
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
 
 			err = client.UpdateThingPropertyValue(context.Background(), "", "fooThingID", "fooComponentID", "fooPropertyID", "foo")
 			assert.Equal(r, currTest.expectedError, err)
