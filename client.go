@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	stdlog "log"
 
@@ -48,7 +49,7 @@ type Client interface {
 	// CreateThing can be used to create a thing. A thingID is returned if
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
-	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string) error
+	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastTime time.Time) error
 }
 
 // ClientOptions allow modification of api client behaviour
@@ -140,10 +141,11 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 }
 
 // UpdateThingPropertyValue implements interface definition
-func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string) error {
+func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error {
 	message := UpdateThingPropertyValueRequest{
-		MessageID: uuid.Must(uuid.NewRandom()).String(),
-		Value:     value,
+		MessageID:  uuid.Must(uuid.NewRandom()).String(),
+		Value:      value,
+		LastUpdate: lastUpdate,
 	}
 
 	payload, err := json.Marshal(message)
