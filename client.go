@@ -14,10 +14,11 @@ import (
 
 	stdlog "log"
 
+	"path"
+
 	"github.com/connctd/restapi-go"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
-	"path"
 
 	"github.com/google/uuid"
 )
@@ -26,7 +27,7 @@ const (
 	// APIBaseURL defines how to reach connctd api
 	APIBaseURL = "https://api.connctd.io/api/v1/"
 
-	connectorThingsEndpoint = "connectorhub/callback/things"
+	connectorThingsEndpoint = "connectorhub/callback/instances/things"
 )
 
 // DefaultOptions returns default client options
