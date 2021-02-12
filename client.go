@@ -49,7 +49,7 @@ type Client interface {
 	// CreateThing can be used to create a thing. A thingID is returned if
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
-	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastTime time.Time) error
+	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
 }
 
 // ClientOptions allow modification of api client behaviour
