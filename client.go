@@ -25,7 +25,7 @@ import (
 
 const (
 	// APIBaseURL defines how to reach connctd api
-	APIBaseURL = "https://api.connctd.io/api/v1/"
+	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
 	connectorThingsEndpoint = "connectorhub/callback/instances/things"
 )
