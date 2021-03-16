@@ -112,3 +112,22 @@ type UpdateThingPropertyValueRequest struct {
 	Value      string    `json:"value"`
 	LastUpdate time.Time `json:"lastUpdate"`
 }
+
+type ActionStatus string
+
+const (
+	ActionStatusPending   ActionStatus = "PENDING"
+	ActionStatusCompleted ActionStatus = "COMPLETED"
+	ActionStatusFailed    ActionStatus = "FAILED"
+	ActionStatusCanceled  ActionStatus = "CANCELED"
+)
+
+// ActionRequest is sent by connctd platform in order to trigger an action
+type ActionRequest struct {
+	ID          string            `json:"id"`
+	ThingID     string            `json:"thingId"`
+	ComponentID string            `json:"componentId"`
+	ActionID    string            `json:"actionId"`
+	Status      string            `json:"status"`
+	Parameters  map[string]string `json:"parameters"`
+}
