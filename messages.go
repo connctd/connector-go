@@ -128,6 +128,17 @@ type ActionRequest struct {
 	ThingID     string            `json:"thingId"`
 	ComponentID string            `json:"componentId"`
 	ActionID    string            `json:"actionId"`
-	Status      string            `json:"status"`
+	Status      ActionStatus      `json:"status"`
 	Parameters  map[string]string `json:"parameters"`
 }
+
+// ActionResponse can be sent in order to inform about the state of an action
+type ActionResponse struct {
+	ID       string       `json:"id"`
+	Status   ActionStatus `json:"status"`
+	Error    string       `json:"error"`
+	Deadline time.Time    `json:"deadline"`
+}
+
+// ActionUpdateMessage can be used in order to 
+type ActionUpdateMessage ActionResponse
