@@ -20,8 +20,6 @@ import (
 	"github.com/connctd/restapi-go"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
-
-	"github.com/google/uuid"
 )
 
 const (
@@ -95,8 +93,7 @@ func NewClient(opts *ClientOptions, logger logr.Logger) (Client, error) {
 // CreateThing implements interface definition
 func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error) {
 	message := AddThingRequest{
-		MessageID: uuid.Must(uuid.NewRandom()).String(),
-		Thing:     thing,
+		Thing: thing,
 	}
 
 	payload, err := json.Marshal(message)
@@ -143,7 +140,6 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 // UpdateThingPropertyValue implements interface definition
 func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error {
 	message := UpdateThingPropertyValueRequest{
-		MessageID:  uuid.Must(uuid.NewRandom()).String(),
 		Value:      value,
 		LastUpdate: lastUpdate,
 	}
