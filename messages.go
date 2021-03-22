@@ -28,7 +28,6 @@ const (
 
 // InstallationRequest sent by connctd in order to signalise a new installation
 type InstallationRequest struct {
-	MessageID     string            `json:"messageId"`
 	ID            string            `json:"id"`
 	Token         InstallationToken `json:"token"`
 	State         InstallationState `json:"state"`
@@ -60,7 +59,6 @@ const (
 
 // InstantiationRequest sent by connctd in order to signalise a new instantiation
 type InstantiationRequest struct {
-	MessageID      string             `json:"messageId"`
 	ID             string             `json:"id"`
 	InstallationID string             `json:"installation_id"`
 	Token          InstantiationToken `json:"token"`
@@ -97,8 +95,7 @@ type Configuration struct {
 
 // AddThingRequest is used to create a new thing on connctd platform
 type AddThingRequest struct {
-	MessageID string        `json:"messageId"`
-	Thing     restapi.Thing `json:"thing"`
+	Thing restapi.Thing `json:"thing"`
 }
 
 // AddThingResponse describes the response sent when thing creation was successful
@@ -108,7 +105,6 @@ type AddThingResponse struct {
 
 // UpdateThingPropertyValueRequest can be used to propagate a new property value
 type UpdateThingPropertyValueRequest struct {
-	MessageID  string    `json:"messageId"`
 	Value      string    `json:"value"`
 	LastUpdate time.Time `json:"lastUpdate"`
 }
@@ -140,5 +136,5 @@ type ActionResponse struct {
 	Deadline time.Time    `json:"deadline"`
 }
 
-// ActionUpdateMessage can be used in order to 
+// ActionUpdateMessage can be used in order to
 type ActionUpdateMessage ActionResponse
