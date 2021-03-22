@@ -11,19 +11,24 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	stdlog "log"
+
+	"path"
 
 	"github.com/connctd/restapi-go"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
+
+	"github.com/google/uuid"
 )
 
 const (
 	// APIBaseURL defines how to reach connctd api
-	APIBaseURL = "https://api.connctd.io/api/v1/"
+	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
-	connectorThingsEndpoint = "connectorhub/callback/things"
+	connectorThingsEndpoint = "connectorhub/callback/instances/things"
 )
 
 // DefaultOptions returns default client options
@@ -44,6 +49,7 @@ type Client interface {
 	// CreateThing can be used to create a thing. A thingID is returned if
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
+	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
 }
 
 // ClientOptions allow modification of api client behaviour
@@ -89,7 +95,8 @@ func NewClient(opts *ClientOptions, logger logr.Logger) (Client, error) {
 // CreateThing implements interface definition
 func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error) {
 	message := AddThingRequest{
-		Thing: thing,
+		MessageID: uuid.Must(uuid.NewRandom()).String(),
+		Thing:     thing,
 	}
 
 	payload, err := json.Marshal(message)
@@ -131,6 +138,50 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 
 	thing.ID = res.ID
 	return thing, nil
+}
+
+// UpdateThingPropertyValue implements interface definition
+func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error {
+	message := UpdateThingPropertyValueRequest{
+		MessageID:  uuid.Must(uuid.NewRandom()).String(),
+		Value:      value,
+		LastUpdate: lastUpdate,
+	}
+
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("Failed to marshal thing update message: %w", err)
+	}
+
+	endpoint := path.Join(connectorThingsEndpoint, thingID, "components", componentID, "properties", propertyID)
+	req, err := http.NewRequest(http.MethodPut, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("Failed to create new thing property value update request: %w", err)
+	}
+
+	// set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+string(token))
+
+	resp, err := a.httpClient.Do(req.WithContext(ctx))
+	if err != nil {
+		a.logger.Error(err, "Failed to update thing property", "thingId", thingID, "componentId", componentID, "propertyId", propertyID)
+		return fmt.Errorf("Failed to update thing property: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Could not read response body of update message: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update thing property", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
+		return ErrorUnexpectedStatusCode
+	}
+
+	return nil
 }
 
 // some error defintions

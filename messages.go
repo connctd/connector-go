@@ -2,6 +2,7 @@ package connector
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/connctd/restapi-go"
 )
@@ -103,4 +104,11 @@ type AddThingRequest struct {
 // AddThingResponse describes the response sent when thing creation was successful
 type AddThingResponse struct {
 	ID string `json:"id"`
+}
+
+// UpdateThingPropertyValueRequest can be used to propagate a new property value
+type UpdateThingPropertyValueRequest struct {
+	MessageID  string    `json:"messageId"`
+	Value      string    `json:"value"`
+	LastUpdate time.Time `json:"lastUpdate"`
 }
