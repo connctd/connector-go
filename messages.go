@@ -130,10 +130,9 @@ type ActionRequest struct {
 
 // ActionResponse can be sent in order to inform about the state of an action
 type ActionResponse struct {
-	ID       string       `json:"id"`
-	Status   ActionStatus `json:"status"`
-	Error    string       `json:"error"`
-	Deadline time.Time    `json:"deadline"`
+	ID     string       `json:"id"`
+	Status ActionStatus `json:"status"`
+	Error  string       `json:"error"`
 }
 
 // ActionUpdateMessage can be used in order to
