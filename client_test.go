@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/connctd/api-go"
 	"github.com/connctd/restapi-go"
@@ -134,7 +135,7 @@ func TestUpdateThingPropertyValue(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			err = client.UpdateThingPropertyValue(context.Background(), "", "fooThingID", "fooComponentID", "fooPropertyID", "foo")
+			err = client.UpdateThingPropertyValue(context.Background(), "", "fooThingID", "fooComponentID", "fooPropertyID", "foo", time.Now())
 			assert.Equal(r, currTest.expectedError, err)
 		})
 	}
