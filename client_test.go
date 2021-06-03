@@ -141,3 +141,54 @@ func TestUpdateThingPropertyValue(t *testing.T) {
 	}
 
 }
+
+var updateInstanceStateTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	details       json.RawMessage
+	expectedError error
+}{
+	{
+		name: "Update state fails on invalid response status",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		details:       nil,
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Update was successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+		details:       nil,
+		expectedError: nil,
+	},
+	{
+		name: "Successful with body",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+		details:       []byte(`Hello world`),
+		expectedError: nil,
+	},
+}
+
+func TestUpdateInstanceState(t *testing.T) {
+	for _, currTest := range updateInstanceStateTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL + "/")
+			require.Nil(r, err)
+
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
+
+			err = client.UpdateInstanceState(context.Background(), "", InstantiationStateComplete, nil)
+			assert.Equal(r, currTest.expectedError, err)
+		})
+	}
+
+}
