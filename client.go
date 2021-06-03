@@ -48,6 +48,7 @@ type Client interface {
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
 	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
+	UpdateInstanceState(ctx context.Context, token InstantiationToken, state )
 }
 
 // ClientOptions allow modification of api client behaviour
