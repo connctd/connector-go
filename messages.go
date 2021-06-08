@@ -55,6 +55,10 @@ type InstantiationState int
 // definition of instantiation states
 const (
 	InstantiationStateInitialized InstantiationState = 1
+	InstantiationStateComplete    InstantiationState = 2
+	InstantiationStateOngoing     InstantiationState = 3
+	InstantiationStateFailed      InstantiationState = 4
+	InstantiationStateError       InstantiationState = 5
 )
 
 // InstantiationRequest sent by connctd in order to signalise a new instantiation

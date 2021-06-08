@@ -26,7 +26,8 @@ const (
 	// APIBaseURL defines how to reach connctd api
 	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
-	connectorThingsEndpoint = "connectorhub/callback/instances/things"
+	connectorThingsEndpoint        = "connectorhub/callback/instances/things"
+	connectorInstanceStateEndpoint = "connectorhub/callback/instances/state"
 )
 
 // DefaultOptions returns default client options
@@ -48,6 +49,7 @@ type Client interface {
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
 	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
+	UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error
 }
 
 // ClientOptions allow modification of api client behaviour
@@ -98,12 +100,12 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 
 	payload, err := json.Marshal(message)
 	if err != nil {
-		return restapi.Thing{}, fmt.Errorf("Failed to marshal thing: %w", err)
+		return restapi.Thing{}, fmt.Errorf("failed to marshal thing: %w", err)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+connectorThingsEndpoint, bytes.NewBuffer(payload))
 	if err != nil {
-		return restapi.Thing{}, fmt.Errorf("Failed to create new request: %w", err)
+		return restapi.Thing{}, fmt.Errorf("failed to create new request: %w", err)
 	}
 
 	// set headers
@@ -113,14 +115,14 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
 		a.logger.Error(err, "Failed to create thing", "name", thing.Name)
-		return restapi.Thing{}, fmt.Errorf("Failed to create thing: %w", err)
+		return restapi.Thing{}, fmt.Errorf("failed to create thing: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return restapi.Thing{}, fmt.Errorf("Could not read response body: %w", err)
+		return restapi.Thing{}, fmt.Errorf("could not read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusCreated {
@@ -130,7 +132,7 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 
 	var res AddThingResponse
 	if err := json.Unmarshal(body, &res); err != nil {
-		return restapi.Thing{}, fmt.Errorf("Unable to unmarshal AddThingResponse: %w", err)
+		return restapi.Thing{}, fmt.Errorf("unable to unmarshal AddThingResponse: %w", err)
 	}
 
 	thing.ID = res.ID
@@ -146,13 +148,13 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 
 	payload, err := json.Marshal(message)
 	if err != nil {
-		return fmt.Errorf("Failed to marshal thing update message: %w", err)
+		return fmt.Errorf("failed to marshal thing update message: %w", err)
 	}
 
 	endpoint := path.Join(connectorThingsEndpoint, thingID, "components", componentID, "properties", propertyID)
 	req, err := http.NewRequest(http.MethodPut, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
 	if err != nil {
-		return fmt.Errorf("Failed to create new thing property value update request: %w", err)
+		return fmt.Errorf("failed to create new thing property value update request: %w", err)
 	}
 
 	// set headers
@@ -162,14 +164,14 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
 		a.logger.Error(err, "Failed to update thing property", "thingId", thingID, "componentId", componentID, "propertyId", propertyID)
-		return fmt.Errorf("Failed to update thing property: %w", err)
+		return fmt.Errorf("failed to update thing property: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Could not read response body of update message: %w", err)
+		return fmt.Errorf("could not read response body of update message: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusNoContent {
@@ -180,9 +182,51 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 	return nil
 }
 
+// UpdateThingPropertyValue implements interface definition
+func (a *APIClient) UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error {
+	message := InstanceStateUpdateRequest{
+		State:   state,
+		Details: details,
+	}
+
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal intance state update message: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+connectorInstanceStateEndpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("failed to create instance state update message: %w", err)
+	}
+
+	// set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+string(token))
+
+	resp, err := a.httpClient.Do(req.WithContext(ctx))
+	if err != nil {
+		a.logger.Error(err, "Failed to send instance state update")
+		return fmt.Errorf("failed to send instance state update: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("could not read response body of instance state update message: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update instance state", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
+		return ErrorUnexpectedStatusCode
+	}
+
+	return nil
+}
+
 // some error defintions
 var (
-	ErrorInvalidBaseURL       = errors.New("The base url needs to end with a slash")
-	ErrorMissingLogger        = errors.New("A logger needs to be passed")
-	ErrorUnexpectedStatusCode = errors.New("The resulting status code does not match with expectation")
+	ErrorInvalidBaseURL       = errors.New("the base url needs to end with a slash")
+	ErrorMissingLogger        = errors.New("a logger needs to be passed")
+	ErrorUnexpectedStatusCode = errors.New("the resulting status code does not match with expectation")
 )
