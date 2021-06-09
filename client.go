@@ -28,7 +28,7 @@ const (
 
 	connectorThingsEndpoint            = "connectorhub/callback/instances/things"
 	connectorInstanceStateEndpoint     = "connectorhub/callback/instances/state"
-	connectorInstallationStateEndpoint = "connectorhub/callback/instances/state"
+	connectorInstallationStateEndpoint = "connectorhub/callback/installations/state"
 )
 
 // DefaultOptions returns default client options
