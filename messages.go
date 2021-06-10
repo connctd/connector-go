@@ -20,10 +20,12 @@ type InstallationToken string
 // InstallationState reflects the current state of an installation
 type InstallationState int
 
-// definition of instantiation related constants
+// definition of installation related constants
 const (
 	InstallationStateInitialized InstallationState = 1
-	// all further states are set internally by connctd
+	InstallationStateComplete    InstallationState = 2
+	InstallationStateOngoing     InstallationState = 3
+	InstallationStateFailed      InstallationState = 4
 )
 
 // InstallationRequest sent by connctd in order to signalise a new installation
@@ -58,7 +60,6 @@ const (
 	InstantiationStateComplete    InstantiationState = 2
 	InstantiationStateOngoing     InstantiationState = 3
 	InstantiationStateFailed      InstantiationState = 4
-	InstantiationStateError       InstantiationState = 5
 )
 
 // InstantiationRequest sent by connctd in order to signalise a new instantiation

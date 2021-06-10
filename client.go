@@ -26,8 +26,9 @@ const (
 	// APIBaseURL defines how to reach connctd api
 	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
-	connectorThingsEndpoint        = "connectorhub/callback/instances/things"
-	connectorInstanceStateEndpoint = "connectorhub/callback/instances/state"
+	connectorThingsEndpoint            = "connectorhub/callback/instances/things"
+	connectorInstanceStateEndpoint     = "connectorhub/callback/instances/state"
+	connectorInstallationStateEndpoint = "connectorhub/callback/installations/state"
 )
 
 // DefaultOptions returns default client options
@@ -49,6 +50,7 @@ type Client interface {
 	// operation was successul. Otherwise an error is thrown.
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
 	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
+	UpdateInstallationState(ctx context.Context, token InstallationToken, state InstallationState, details json.RawMessage) error
 	UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error
 }
 
@@ -176,6 +178,48 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 
 	if resp.StatusCode != http.StatusNoContent {
 		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update thing property", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
+		return ErrorUnexpectedStatusCode
+	}
+
+	return nil
+}
+
+// UpdateInstallationState implements interface definition
+func (a *APIClient) UpdateInstallationState(ctx context.Context, token InstallationToken, state InstallationState, details json.RawMessage) error {
+	message := InstallationStateUpdateRequest{
+		State:   state,
+		Details: details,
+	}
+
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal installation state update message: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+connectorInstallationStateEndpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("failed to create installation state update message: %w", err)
+	}
+
+	// set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+string(token))
+
+	resp, err := a.httpClient.Do(req.WithContext(ctx))
+	if err != nil {
+		a.logger.Error(err, "Failed to send installation state update")
+		return fmt.Errorf("failed to send installation state update: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("could not read response body of installation state update message: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update installation state", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
 		return ErrorUnexpectedStatusCode
 	}
 
