@@ -114,6 +114,11 @@ type UpdateThingPropertyValueRequest struct {
 	LastUpdate time.Time `json:"lastUpdate"`
 }
 
+// UpdateThingStatus allows updating status of a thing
+type UpdateThingStatusRequest struct {
+	Status restapi.StatusType `json:"status"`
+}
+
 type ActionStatus string
 
 const (
