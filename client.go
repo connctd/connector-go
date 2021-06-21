@@ -54,7 +54,7 @@ type Client interface {
 	UpdateThingStatus(ctx context.Context, token InstantiationToken, thingID string, status restapi.StatusType) error
 
 	// UpdateActionStatus can be used to inform about the new state of an action. Optional err can be set for additional error details
-	UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status ActionStatus, err string) error
+	UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status restapi.ActionRequestStatus, err string) error
 	UpdateInstallationState(ctx context.Context, token InstallationToken, state InstallationState, details json.RawMessage) error
 	UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error
 }
@@ -165,7 +165,7 @@ func (a *APIClient) UpdateThingStatus(ctx context.Context, token InstantiationTo
 	return a.doRequest(ctx, http.MethodPut, path.Join(connectorThingsEndpoint, thingID, "status"), string(token), message, http.StatusNoContent)
 }
 
-func (a *APIClient) UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status ActionStatus, e string) error {
+func (a *APIClient) UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status restapi.ActionRequestStatus, e string) error {
 	message := ActionRequestStatusUpdate{
 		Status: status,
 		Error:  e,
