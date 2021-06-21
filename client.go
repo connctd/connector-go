@@ -166,7 +166,7 @@ func (a *APIClient) UpdateThingStatus(ctx context.Context, token InstantiationTo
 }
 
 func (a *APIClient) UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status ActionStatus, e string) error {
-	message := ActionStatusUpdate{
+	message := ActionRequestStatusUpdate{
 		Status: status,
 		Error:  e,
 	}
