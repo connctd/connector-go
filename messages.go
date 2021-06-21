@@ -145,5 +145,11 @@ type ActionResponse struct {
 	Error  string       `json:"error"`
 }
 
+// ActionStatusUpdate allows a connector to update the status of an action
+type ActionStatusUpdate struct {
+	Status ActionStatus `json:"status"`
+	Error  string       `json:"error,omitempty"`
+}
+
 // ActionUpdateMessage can be used in order to
 type ActionUpdateMessage ActionResponse
