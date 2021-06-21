@@ -27,7 +27,7 @@ const (
 	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
 	connectorThingsEndpoint            = "connectorhub/callback/instances/things"
-	connectorActionsEndpoint           = "connectorhub/callback/instances/actions"
+	connectorActionsEndpoint           = "connectorhub/callback/instances/actions/requests"
 	connectorInstanceStateEndpoint     = "connectorhub/callback/instances/state"
 	connectorInstallationStateEndpoint = "connectorhub/callback/installations/state"
 )
