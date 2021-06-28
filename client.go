@@ -27,6 +27,7 @@ const (
 	APIBaseURL = "https://connectors.connctd.io/api/v1/"
 
 	connectorThingsEndpoint            = "connectorhub/callback/instances/things"
+	connectorActionsEndpoint           = "connectorhub/callback/instances/actions/requests"
 	connectorInstanceStateEndpoint     = "connectorhub/callback/instances/state"
 	connectorInstallationStateEndpoint = "connectorhub/callback/installations/state"
 )
@@ -51,6 +52,9 @@ type Client interface {
 	CreateThing(ctx context.Context, token InstantiationToken, thing restapi.Thing) (result restapi.Thing, err error)
 	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
 	UpdateThingStatus(ctx context.Context, token InstantiationToken, thingID string, status restapi.StatusType) error
+
+	// UpdateActionStatus can be used to inform about the new state of an action. Optional err can be set for additional error details
+	UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status restapi.ActionRequestStatus, err string) error
 	UpdateInstallationState(ctx context.Context, token InstallationToken, state InstallationState, details json.RawMessage) error
 	UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error
 }
@@ -149,40 +153,7 @@ func (a *APIClient) UpdateThingPropertyValue(ctx context.Context, token Instanti
 		LastUpdate: lastUpdate,
 	}
 
-	payload, err := json.Marshal(message)
-	if err != nil {
-		return fmt.Errorf("failed to marshal thing update message: %w", err)
-	}
-
-	endpoint := path.Join(connectorThingsEndpoint, thingID, "components", componentID, "properties", propertyID)
-	req, err := http.NewRequest(http.MethodPut, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
-	if err != nil {
-		return fmt.Errorf("failed to create new thing property value update request: %w", err)
-	}
-
-	// set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+string(token))
-
-	resp, err := a.httpClient.Do(req.WithContext(ctx))
-	if err != nil {
-		a.logger.Error(err, "Failed to update thing property", "thingId", thingID, "componentId", componentID, "propertyId", propertyID)
-		return fmt.Errorf("failed to update thing property: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("could not read response body of update message: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update thing property", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
-		return ErrorUnexpectedStatusCode
-	}
-
-	return nil
+	return a.doRequest(ctx, http.MethodPut, path.Join(connectorThingsEndpoint, thingID, "components", componentID, "properties", propertyID), string(token), message, http.StatusNoContent)
 }
 
 // UpdateThingPropertyValue implements interface definition
@@ -191,40 +162,16 @@ func (a *APIClient) UpdateThingStatus(ctx context.Context, token InstantiationTo
 		Status: status,
 	}
 
-	payload, err := json.Marshal(message)
-	if err != nil {
-		return fmt.Errorf("failed to marshal thing state update message: %w", err)
+	return a.doRequest(ctx, http.MethodPut, path.Join(connectorThingsEndpoint, thingID, "status"), string(token), message, http.StatusNoContent)
+}
+
+func (a *APIClient) UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status restapi.ActionRequestStatus, e string) error {
+	message := ActionRequestStatusUpdate{
+		Status: status,
+		Error:  e,
 	}
 
-	endpoint := path.Join(connectorThingsEndpoint, thingID, "status")
-	req, err := http.NewRequest(http.MethodPut, a.baseURL.String()+endpoint, bytes.NewBuffer(payload))
-	if err != nil {
-		return fmt.Errorf("failed to create request for updating thing status: %w", err)
-	}
-
-	// set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+string(token))
-
-	resp, err := a.httpClient.Do(req.WithContext(ctx))
-	if err != nil {
-		a.logger.Error(err, "Failed to update thing status", "thingId", thingID)
-		return fmt.Errorf("failed to update thing status: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("could not read response body of update message: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update thing status", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
-		return ErrorUnexpectedStatusCode
-	}
-
-	return nil
+	return a.doRequest(ctx, http.MethodPut, path.Join(connectorActionsEndpoint, actionRequestID), string(token), message, http.StatusNoContent)
 }
 
 // UpdateInstallationState implements interface definition
@@ -234,39 +181,7 @@ func (a *APIClient) UpdateInstallationState(ctx context.Context, token Installat
 		Details: details,
 	}
 
-	payload, err := json.Marshal(message)
-	if err != nil {
-		return fmt.Errorf("failed to marshal installation state update message: %w", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+connectorInstallationStateEndpoint, bytes.NewBuffer(payload))
-	if err != nil {
-		return fmt.Errorf("failed to create installation state update message: %w", err)
-	}
-
-	// set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+string(token))
-
-	resp, err := a.httpClient.Do(req.WithContext(ctx))
-	if err != nil {
-		a.logger.Error(err, "Failed to send installation state update")
-		return fmt.Errorf("failed to send installation state update: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("could not read response body of installation state update message: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusNoContent {
-		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update installation state", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
-		return ErrorUnexpectedStatusCode
-	}
-
-	return nil
+	return a.doRequest(ctx, http.MethodPost, connectorInstallationStateEndpoint, string(token), message, http.StatusNoContent)
 }
 
 // UpdateThingPropertyValue implements interface definition
@@ -276,35 +191,44 @@ func (a *APIClient) UpdateInstanceState(ctx context.Context, token Instantiation
 		Details: details,
 	}
 
-	payload, err := json.Marshal(message)
+	return a.doRequest(ctx, http.MethodPost, connectorInstanceStateEndpoint, string(token), message, http.StatusNoContent)
+}
+
+func (a *APIClient) doRequest(ctx context.Context, method string, endpoint string, token string, payload interface{}, expectedStatusCode int) error {
+	logger := a.logger.WithValues("endpoint", endpoint, "expectedStatusCode", expectedStatusCode)
+
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal intance state update message: %w", err)
+		logger.Error(err, "Failed to marshal request")
+		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, a.baseURL.String()+connectorInstanceStateEndpoint, bytes.NewBuffer(payload))
+	req, err := http.NewRequest(method, a.baseURL.String()+endpoint, bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return fmt.Errorf("failed to create instance state update message: %w", err)
+		logger.Error(err, "Failed to create new request")
+		return fmt.Errorf("failed to create new request: %w", err)
 	}
 
 	// set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+string(token))
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
-		a.logger.Error(err, "Failed to send instance state update")
-		return fmt.Errorf("failed to send instance state update: %w", err)
+		logger.Error(err, "Failed to send request")
+		return fmt.Errorf("failed to send request: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("could not read response body of instance state update message: %w", err)
+		logger.Error(err, "Failed to read response body")
+		return fmt.Errorf("could not read response body: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusNoContent {
-		a.logger.Error(ErrorUnexpectedStatusCode, "Could not update instance state", "expectedStatusCode", http.StatusNoContent, "givenStatusCode", resp.StatusCode, "body", string(body))
+	if resp.StatusCode != expectedStatusCode {
+		logger.Error(ErrorUnexpectedStatusCode, "Could not update thing property", "givenStatusCode", resp.StatusCode, "body", string(body))
 		return ErrorUnexpectedStatusCode
 	}
 

@@ -119,31 +119,25 @@ type UpdateThingStatusRequest struct {
 	Status restapi.StatusType `json:"status"`
 }
 
-type ActionStatus string
-
-const (
-	ActionStatusPending   ActionStatus = "PENDING"
-	ActionStatusCompleted ActionStatus = "COMPLETED"
-	ActionStatusFailed    ActionStatus = "FAILED"
-	ActionStatusCanceled  ActionStatus = "CANCELED"
-)
-
 // ActionRequest is sent by connctd platform in order to trigger an action
 type ActionRequest struct {
-	ID          string            `json:"id"`
-	ThingID     string            `json:"thingId"`
-	ComponentID string            `json:"componentId"`
-	ActionID    string            `json:"actionId"`
-	Status      ActionStatus      `json:"status"`
-	Parameters  map[string]string `json:"parameters"`
+	ID          string                      `json:"id"`
+	ThingID     string                      `json:"thingId"`
+	ComponentID string                      `json:"componentId"`
+	ActionID    string                      `json:"actionId"`
+	Status      restapi.ActionRequestStatus `json:"status"`
+	Parameters  map[string]string           `json:"parameters"`
 }
 
 // ActionResponse can be sent in order to inform about the state of an action
 type ActionResponse struct {
-	ID     string       `json:"id"`
-	Status ActionStatus `json:"status"`
-	Error  string       `json:"error"`
+	ID     string                      `json:"id"`
+	Status restapi.ActionRequestStatus `json:"status"`
+	Error  string                      `json:"error"`
 }
 
-// ActionUpdateMessage can be used in order to
-type ActionUpdateMessage ActionResponse
+// ActionRequestStatusUpdate allows a connector to update the status of an action
+type ActionRequestStatusUpdate struct {
+	Status restapi.ActionRequestStatus `json:"status"`
+	Error  string                      `json:"error"`
+}
