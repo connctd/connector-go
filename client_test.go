@@ -82,6 +82,47 @@ func TestCreateThing(t *testing.T) {
 	}
 }
 
+var deleteThingTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	expectedError error
+}{
+	{
+		name: "Delete thing fails on bad response code",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Delete thing successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+	},
+}
+
+func TestDeleteThing(t *testing.T) {
+	for _, currTest := range deleteThingTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL + "/")
+			require.Nil(r, err)
+
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
+
+			err = client.DeleteThing(context.Background(), "", "fooid")
+
+			if currTest.expectedError != nil {
+				assert.Equal(r, currTest.expectedError, err)
+			}
+		})
+	}
+}
+
 func TestParametersValidation(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
