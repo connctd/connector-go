@@ -57,6 +57,8 @@ type Client interface {
 	UpdateActionStatus(ctx context.Context, token InstantiationToken, actionRequestID string, status restapi.ActionRequestStatus, err string) error
 	UpdateInstallationState(ctx context.Context, token InstallationToken, state InstallationState, details json.RawMessage) error
 	UpdateInstanceState(ctx context.Context, token InstantiationToken, state InstantiationState, details json.RawMessage) error
+
+	DeleteThing(ctx context.Context, token InstantiationToken, thingID string) error
 }
 
 // ClientOptions allow modification of api client behaviour
@@ -194,23 +196,41 @@ func (a *APIClient) UpdateInstanceState(ctx context.Context, token Instantiation
 	return a.doRequest(ctx, http.MethodPost, connectorInstanceStateEndpoint, string(token), message, http.StatusNoContent)
 }
 
+// UpdateThingPropertyValue implements interface definition
+func (a *APIClient) DeleteThing(ctx context.Context, token InstantiationToken, thingID string) error {
+	return a.doRequest(ctx, http.MethodDelete, path.Join(connectorThingsEndpoint, thingID), string(token), nil, http.StatusNoContent)
+}
+
 func (a *APIClient) doRequest(ctx context.Context, method string, endpoint string, token string, payload interface{}, expectedStatusCode int) error {
 	logger := a.logger.WithValues("endpoint", endpoint, "expectedStatusCode", expectedStatusCode)
 
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		logger.Error(err, "Failed to marshal request")
-		return fmt.Errorf("failed to marshal request: %w", err)
+	var err error
+	var req *http.Request
+
+	// append payload if given
+	if payload != nil {
+		payloadBytes, err := json.Marshal(payload)
+		if err != nil {
+			logger.Error(err, "Failed to marshal request")
+			return fmt.Errorf("failed to marshal request: %w", err)
+		}
+
+		req, err = http.NewRequest(method, a.baseURL.String()+endpoint, bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			logger.Error(err, "Failed to create new request")
+			return fmt.Errorf("failed to create new request: %w", err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+	} else {
+		req, err = http.NewRequest(method, a.baseURL.String()+endpoint, nil)
+		if err != nil {
+			logger.Error(err, "Failed to create new request")
+			return fmt.Errorf("failed to create new request: %w", err)
+		}
 	}
 
-	req, err := http.NewRequest(method, a.baseURL.String()+endpoint, bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		logger.Error(err, "Failed to create new request")
-		return fmt.Errorf("failed to create new request: %w", err)
-	}
-
-	// set headers
-	req.Header.Set("Content-Type", "application/json")
+	// set additional headers
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
