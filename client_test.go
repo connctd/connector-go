@@ -15,11 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	dummyServer *httptest.Server
-	testClient  Client
-)
-
 var createThingTests = []struct {
 	name            string
 	handler         http.HandlerFunc
@@ -40,6 +35,14 @@ var createThingTests = []struct {
 			dummyError.Write(w)
 		},
 		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Create thing fails on bad response",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte(`foo`))
+		},
+		expectedError: ErrorUnexpectedResponse,
 	},
 	{
 		name: "Create thing successful",
@@ -232,4 +235,127 @@ func TestUpdateInstanceState(t *testing.T) {
 		})
 	}
 
+}
+
+var updateActionStatusTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	expectedError error
+}{
+	{
+		name: "Update action status fails on bad response code",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Update action request was successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+	},
+}
+
+func TestUpdateActionStatus(t *testing.T) {
+	for _, currTest := range updateActionStatusTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL + "/")
+			require.Nil(r, err)
+
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
+
+			err = client.UpdateActionStatus(context.Background(), "", "fooid", restapi.ActionRequestStatusCompleted, "")
+
+			if currTest.expectedError != nil {
+				assert.Equal(r, currTest.expectedError, err)
+			}
+		})
+	}
+}
+
+var updateThingStatusTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	expectedError error
+}{
+	{
+		name: "Update thing status fails on bad response code",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Update thing status was successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+	},
+}
+
+func TestUpdateThingStatus(t *testing.T) {
+	for _, currTest := range updateThingStatusTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL + "/")
+			require.Nil(r, err)
+
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
+
+			err = client.UpdateThingStatus(context.Background(), "", "foothingid", restapi.StatusTypeAvailable)
+
+			if currTest.expectedError != nil {
+				assert.Equal(r, currTest.expectedError, err)
+			}
+		})
+	}
+}
+
+var updateInstallationStateTests = []struct {
+	name          string
+	handler       http.HandlerFunc
+	expectedError error
+}{
+	{
+		name: "Update installation state fails on bad response code",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+		},
+		expectedError: ErrorUnexpectedStatusCode,
+	},
+	{
+		name: "Update installation state was successful",
+		handler: func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		},
+	},
+}
+
+func TestUpdateInstallationState(t *testing.T) {
+	for _, currTest := range updateInstallationStateTests {
+		t.Run(currTest.name, func(r *testing.T) {
+			dummyServer := httptest.NewServer(currTest.handler)
+			defer dummyServer.Close()
+
+			url, err := url.Parse(dummyServer.URL + "/")
+			require.Nil(r, err)
+
+			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
+			require.Nil(r, err)
+
+			err = client.UpdateInstallationState(context.Background(), "footoken", InstallationStateOngoing, nil)
+
+			if currTest.expectedError != nil {
+				assert.Equal(r, currTest.expectedError, err)
+			}
+		})
+	}
 }
