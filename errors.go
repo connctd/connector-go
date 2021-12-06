@@ -5,11 +5,16 @@ import (
 	"net/http"
 )
 
+// TODO: should we use api-go/errors.go instead? Also used in the signature validation.
 var (
-	ErrorBadContentType    = Error{Code: http.StatusBadRequest, Message: "Expected content type to be application/json"}
-	ErrorMissingInstanceID = Error{Code: http.StatusBadRequest, Message: "Header X-Instance-ID is missing"}
-	ErrorBadRequestBody    = Error{Code: http.StatusBadRequest, Message: "Empty or malformed request body"}
-	ErrorInvalidJsonBody   = Error{Code: http.StatusBadRequest, Message: "Request body does not contain valid json"}
+	ErrorBadContentType        = Error{Code: http.StatusBadRequest, Message: "Expected content type to be application/json"}
+	ErrorMissingInstanceID     = Error{Code: http.StatusBadRequest, Message: "Instance ID is missing"}
+	ErrorMissingInstallationID = Error{Code: http.StatusBadRequest, Message: "Installation ID is missing"}
+	ErrorBadRequestBody        = Error{Code: http.StatusBadRequest, Message: "Empty or malformed request body"}
+	ErrorInvalidJsonBody       = Error{Code: http.StatusBadRequest, Message: "Request body does not contain valid json"}
+	ErrorForbidden             = Error{Code: http.StatusForbidden, Message: "Insufficient rights"}
+	ErrorUnauthorized          = Error{Code: http.StatusUnauthorized, Message: "Not authorize	d"}
+	ErrorInternal              = Error{Code: http.StatusInternalServerError, Message: "Internal server error"}
 )
 
 type Error struct {
