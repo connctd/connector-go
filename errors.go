@@ -12,8 +12,10 @@ var (
 	ErrorMissingInstallationID = Error{Code: http.StatusBadRequest, Message: "Installation ID is missing"}
 	ErrorBadRequestBody        = Error{Code: http.StatusBadRequest, Message: "Empty or malformed request body"}
 	ErrorInvalidJsonBody       = Error{Code: http.StatusBadRequest, Message: "Request body does not contain valid json"}
+	ErrorInstallationNotFound  = Error{Code: http.StatusNotFound, Message: "Installation not found"}
+	ErrorInstanceNotFound      = Error{Code: http.StatusNotFound, Message: "Instance not found"}
 	ErrorForbidden             = Error{Code: http.StatusForbidden, Message: "Insufficient rights"}
-	ErrorUnauthorized          = Error{Code: http.StatusUnauthorized, Message: "Not authorize	d"}
+	ErrorUnauthorized          = Error{Code: http.StatusUnauthorized, Message: "Not authorized"}
 	ErrorInternal              = Error{Code: http.StatusInternalServerError, Message: "Internal server error"}
 )
 

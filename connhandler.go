@@ -50,7 +50,7 @@ func NewConnectorHandler(subrouter *mux.Router, service ConnectorService, public
 	c.router.Path("/instances/{id}").Methods(http.MethodDelete).Handler(NewSignatureValidationHandler(
 		AutoProxyRequestValidationPreProcessor(), publicKey, RemoveInstance(c.service)))
 
-	c.router.Path("actions").Methods(http.MethodPost).Handler(NewSignatureValidationHandler(
+	c.router.Path("/actions").Methods(http.MethodPost).Handler(NewSignatureValidationHandler(
 		AutoProxyRequestValidationPreProcessor(), publicKey, PerformAction(c.service)))
 
 	return c
@@ -218,6 +218,9 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 		}
 
 		if response != nil {
+			if response.ID == "" {
+				response.ID = req.ID
+			}
 			b, err := json.Marshal(response)
 			if err != nil {
 				writeError(w, err)
@@ -227,6 +230,7 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 			// TODO: should this be http.StatusAccepted?
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
+			return
 		}
 
 		w.WriteHeader(http.StatusNoContent)

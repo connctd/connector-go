@@ -38,7 +38,7 @@ type Instance struct {
 	ID             string             `db:"id" json:"id"`
 	InstallationID string             `db:"installation_id" json:"installationId"`
 	Token          InstantiationToken `db:"token" json:"token"`
-	ThingID        string             `db:"thing_id" json:"thingId"`
+	ThingIDs       []string           `json:"thingIds"`
 	Configuration  []Configuration    `json:"configuration"`
 }
 

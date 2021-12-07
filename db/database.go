@@ -63,14 +63,15 @@ var (
 	statementRemoveInstallationById           = `DELETE FROM installtations WHERE id = ?`
 
 	statementInsertInstance               = `INSERT INTO instances (id, installation_id, token) VALUES (?, ?, ?)`
-	statementGetInstanceByID              = `SELECT id, token, installation_id, thing_id FROM instances WHERE id = ?`
-	statementGetInstanceByThingID         = `SELECT id, token, installation_id, thing_id FROM instances WHERE thing_id = ?`
-	statementGetInstances                 = `SELECT id, token, installation_id, thing_id FROM instances`
+	statementGetInstanceByID              = `SELECT id, token, installation_id FROM instances WHERE id = ?`
+	statementGetInstanceByThingID         = `SELECT id, token, installation_id FROM instances, (SELECT instance_id FROM instance_thing_mapping WHERE thing_id = ? LIMIT 1) mapping WHERE id = instance_id;`
+	statementGetInstances                 = `SELECT id, token, installation_id FROM instances`
 	statementInsertInstanceConfig         = `INSERT INTO instance_configuration (installation_id, id, value) VALUES (?, ?, ?)`
 	statementGetConfigurationByInstanceID = `SELECT id, value FROM instance_configuration WHERE instance_id = ?`
+	statementGetThingsByInstanceID        = `SELECT thing_id FROM instance_thing_mapping WHERE instance_id = ?`
 	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
 
-	statementInsertThingId = `UPDATE instances SET thing_id = ? WHERE id = ?`
+	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id) VALUES (?, ?)`
 )
 
 const (
@@ -88,6 +89,13 @@ const (
 		UNIQUE(id),
 		FOREIGN KEY (installation_id)
 			REFERENCES installations(id) ON DELETE CASCADE
+	)`
+
+	statementCreateInstaceThingMapping = `CREATE TABLE instance_thing_mapping (
+		instance_id CHAR (36) NOT NULL,
+		thing_id CHAR (36) NOT NULL,
+		FOREIGN KEY (instance_id)
+			REFERENCES instances(id) ON DELETE CASCADE
 	)`
 
 	statementCreateInstallConfigTable = `CREATE TABLE installation_configuration (
@@ -110,6 +118,7 @@ const (
 var migrationQueries = []string{
 	statementCreateInstallationTable,
 	statementCreateInstanceTable,
+	statementCreateInstaceThingMapping,
 	statementCreateInstallConfigTable,
 	statementCreateInstanceConfigTable,
 }
@@ -134,7 +143,7 @@ func (m *DBClient) Migrate() error {
 	for _, q := range migrationQueries {
 		_, err := m.DB.Exec(q)
 		if err != nil {
-			return fmt.Errorf("failed to migrate db %v", err)
+			return fmt.Errorf("failed to migrate db (query: %v) %v", q, err)
 		}
 	}
 	return nil
@@ -228,8 +237,13 @@ func (m *DBClient) GetInstance(ctx context.Context, instanceId string) (*connect
 	if err != nil {
 		return nil, err
 	}
-
 	instance.Configuration = config
+
+	things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+	if err != nil {
+		return nil, err
+	}
+	instance.ThingIDs = things
 
 	return &instance, nil
 }
@@ -244,8 +258,15 @@ func (m *DBClient) GetInstances(ctx context.Context) ([]*connector.Instance, err
 	for i, instance := range instances {
 		config, err := m.GetInstanceConfiguration(ctx, instance.ID)
 		if err != nil {
-			instances[i].Configuration = config
+			return nil, err
 		}
+		instances[i].Configuration = config
+
+		things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+		if err != nil {
+			return nil, err
+		}
+		instance.ThingIDs = things
 	}
 	return instances, nil
 }
@@ -262,8 +283,13 @@ func (m *DBClient) GetInstanceByThingId(ctx context.Context, thingId string) (*c
 	if err != nil {
 		return nil, err
 	}
-
 	instance.Configuration = config
+
+	things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+	if err != nil {
+		return nil, err
+	}
+	instance.ThingIDs = things
 
 	return &instance, nil
 }
@@ -279,6 +305,16 @@ func (m *DBClient) GetInstanceConfiguration(ctx context.Context, instanceId stri
 	return configurations, nil
 }
 
+// GetThingIDsByInstance returns all things mapped to the instance with the given id.
+func (m *DBClient) GetThingIDsByInstance(ctx context.Context, instanceId string) ([]string, error) {
+	var thingIDs []string
+	err := m.DB.Select(&thingIDs, statementGetThingsByInstanceID, instanceId)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to retrieve thing ids %v", err)
+	}
+	return thingIDs, nil
+}
+
 // RemoveInstance removes the instance with the given id from the database.
 func (m *DBClient) RemoveInstance(ctx context.Context, instanceId string) error {
 	_, err := m.DB.Exec(statementRemoveInstanceById, instanceId)
@@ -290,8 +326,8 @@ func (m *DBClient) RemoveInstance(ctx context.Context, instanceId string) error 
 }
 
 // AddThingID updates the instance with the thing ID.
-func (m *DBClient) AddThingID(ctx context.Context, instanceId string, thingID string) error {
-	_, err := m.DB.Exec(statementInsertThingId, thingID, instanceId)
+func (m *DBClient) AddThingID(ctx context.Context, instanceId string, thingId string) error {
+	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId)
 	if err != nil {
 		return fmt.Errorf("failed to insert thing id: %w", err)
 	}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -91,10 +92,13 @@ func (s *DefaultConnectorService) RemoveInstallation(ctx context.Context, instal
 	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
 
 	if err := s.provider.RemoveInstallation(installationId); err != nil {
-		return err
+		s.logger.Error(err, "tried to remove installation that is not registered")
 	}
 
 	if err := s.db.RemoveInstallation(ctx, installationId); err != nil {
+		if err == sql.ErrNoRows {
+			return connector.ErrorInstallationNotFound
+		}
 		return err
 	}
 	return nil
@@ -118,17 +122,23 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 		}
 	}
 
-	for _, thing := range s.thingTemplates(request.Configuration) {
-		if err := s.CreateThing(ctx, request.ID, thing); err != nil {
+	thingTemplates := s.thingTemplates(request)
+	things := make([]string, len(thingTemplates))
+	for i, thing := range thingTemplates {
+		thing, err := s.CreateThing(ctx, request.ID, thing)
+		if err != nil {
 			s.logger.Error(err, "Failed to create new thing")
 			return nil, err
 		}
+		things[i] = thing.ID
 	}
 
 	s.provider.RegisterInstances(&connector.Instance{
 		ID:             request.ID,
 		InstallationID: request.InstallationID,
 		Token:          request.Token,
+		ThingIDs:       things,
+		Configuration:  request.Configuration,
 	})
 
 	return nil, nil
@@ -141,10 +151,13 @@ func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, installati
 	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
 
 	if err := s.provider.RemoveInstance(installationId); err != nil {
-		return err
+		s.logger.Error(err, "tried to remove instance that is not registered")
 	}
 
 	if err := s.db.RemoveInstance(ctx, installationId); err != nil {
+		if err == sql.ErrNoRows {
+			return connector.ErrorInstanceNotFound
+		}
 		return err
 	}
 	return nil
@@ -162,6 +175,7 @@ func (s *DefaultConnectorService) PerformAction(ctx context.Context, actionReque
 
 	status, err := s.provider.RequestAction(ctx, instance, actionRequest)
 	if err != nil {
+		s.logger.Error(err, "failed to perform action")
 		return &connector.ActionResponse{Status: status, Error: err.Error()}, err
 	}
 
@@ -189,12 +203,21 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 	// wait for update events
 	go func() {
 		for update := range s.provider.UpdateChannel() {
+			var err error
 			if update.PropertyUpdateEvent != nil {
 				propertyUpdate := update.PropertyUpdateEvent
-				s.UpdateProperty(ctx, propertyUpdate.InstanceId, propertyUpdate.ThingId, propertyUpdate.ComponentId, propertyUpdate.PropertyId, propertyUpdate.Value)
+				err = s.UpdateProperty(ctx, propertyUpdate.InstanceId, propertyUpdate.ThingId, propertyUpdate.ComponentId, propertyUpdate.PropertyId, propertyUpdate.Value)
+				if err != nil {
+					s.logger.Error(err, "failed to update property")
+				}
 			}
 			if update.ActionEvent != nil {
 				actionEvent := update.ActionEvent
+				if err != nil {
+					actionEvent.ActionResponse.Status = restapi.ActionRequestStatusFailed
+					actionEvent.ActionResponse.Error = fmt.Sprintf("failed to update property %v", err)
+					s.logger.Error(err, "action failed: failed to update property")
+				}
 				err := s.UpdateActionStatus(ctx, actionEvent.InstanceId, actionEvent.ActionRequestId, actionEvent.ActionResponse)
 				if err != nil {
 					s.logger.Error(err, "Failed to update action status")
@@ -207,11 +230,11 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 // CreateThing can be called by the connector to register a new thing for the given instance.
 // It retrieves the instance token from the database and uses the token to create a new thing via the connctd API client.
 // The new thing ID is then stored in the database referencing the instance id.
-func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId string, thing restapi.Thing) error {
+func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId string, thing restapi.Thing) (*restapi.Thing, error) {
 	instance, err := s.db.GetInstance(ctx, instanceId)
 	if err != nil {
 		s.logger.WithValues("instanceId", instanceId).Error(err, "failed to retrieve instance from database")
-		return err
+		return nil, err
 	}
 
 	// CreateThing() will create the thing at the connctd platform.
@@ -219,19 +242,19 @@ func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId st
 	createdThing, err := s.connctdClient.CreateThing(ctx, instance.Token, thing)
 	if err != nil {
 		s.logger.WithValues("thing", thing).Error(err, "failed to register new Thing")
-		return err
+		return nil, err
 	}
 
 	// Save the thing ID with the instance, so we have a mapping of things to instances.
 	err = s.db.AddThingID(ctx, instanceId, createdThing.ID)
 	if err != nil {
 		s.logger.WithValues("thing", thing).Error(err, "failed to insert new Thing into database")
-		return err
+		return nil, err
 	}
 
 	s.logger.WithValues("thing", createdThing).Info("Created new thing")
 
-	return nil
+	return &createdThing, nil
 }
 
 // UpdateProperty can be called by the connector to update a component property of a thing belonging to an instance.
@@ -240,10 +263,6 @@ func (s *DefaultConnectorService) UpdateProperty(ctx context.Context, instanceId
 	if err != nil {
 		s.logger.WithValues("instanceId", instanceId).Error(err, "failed to retrieve instance")
 		return err
-	}
-	if instance.ThingID == "" {
-		s.logger.WithValues("instanceId", instanceId).Error(err, "thing id not set")
-		return errors.New("thing id not set")
 	}
 
 	timestamp := time.Now()

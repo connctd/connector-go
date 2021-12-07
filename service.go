@@ -17,9 +17,9 @@ type ConnectorService interface {
 }
 
 type ThingService interface {
-	CreateThing(ctx context.Context, instanceId string, thing restapi.Thing) error
+	CreateThing(ctx context.Context, instanceId string, thing restapi.Thing) (restapi.Thing, error)
 	UpdateProperty(ctx context.Context, instanceId, componentId, propertyId, value string) error
 	UpdateActionStatus(ctx context.Context, instanceId string, actionRequestId string, actionResponse *ActionResponse) error
 }
 
-type ThingTemplates func(configuration []Configuration) []restapi.Thing
+type ThingTemplates func(request InstantiationRequest) []restapi.Thing
