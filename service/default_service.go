@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -95,9 +94,7 @@ func (s *DefaultConnectorService) RemoveInstallation(ctx context.Context, instal
 	}
 
 	if err := s.db.RemoveInstallation(ctx, installationId); err != nil {
-		if err == sql.ErrNoRows {
-			return connector.ErrorInstallationNotFound
-		}
+		s.logger.WithValues("installationId", installationId).Error(err, "failed to remove installation from db")
 		return err
 	}
 	return nil
@@ -146,17 +143,15 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 // RemoveInstance is called by the HTTP handler when it receives an instance removal request.
 // It will remove the instance from the database (including the instance token) and from the provider.
 // Note that we will not be able to communicate with the connctd platform about the removed instance after this, since the token is deleted.
-func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, installationId string) error {
-	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
+func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, instanceId string) error {
+	s.logger.WithValues("instanceId", instanceId).Info("Received an instance removal request")
 
-	if err := s.provider.RemoveInstance(installationId); err != nil {
+	if err := s.provider.RemoveInstance(instanceId); err != nil {
 		s.logger.Error(err, "tried to remove instance that is not registered")
 	}
 
-	if err := s.db.RemoveInstance(ctx, installationId); err != nil {
-		if err == sql.ErrNoRows {
-			return connector.ErrorInstanceNotFound
-		}
+	if err := s.db.RemoveInstance(ctx, instanceId); err != nil {
+		s.logger.WithValues("instanceId", instanceId).Error(err, "failed to remove instance from db")
 		return err
 	}
 	return nil
