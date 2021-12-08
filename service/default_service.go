@@ -14,7 +14,6 @@ import (
 )
 
 // ConnectorService provides the callback functions used by the HTTP handler
-// Later on it will implement the communication with the Giphy API
 type DefaultConnectorService struct {
 	logger         logr.Logger
 	db             db.Database
@@ -23,7 +22,7 @@ type DefaultConnectorService struct {
 	thingTemplates connector.ThingTemplates
 }
 
-// NewConnectorService returns a new instance of the Giphy connector
+// NewConnectorService returns a new instance of the default connector
 func NewConnectorService(dbClient db.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, logger logr.Logger) (*DefaultConnectorService, error) {
 	connector := &DefaultConnectorService{
 		logger,
@@ -39,7 +38,7 @@ func NewConnectorService(dbClient db.Database, connctdClient connector.Client, p
 }
 
 // init is called once during startup of the connector.
-// It will register existing installations and instances with the Giphy provider
+// It will register existing installations and instances with the provider.
 func (s *DefaultConnectorService) init() error {
 	installations, err := s.db.GetInstallations(context.Background())
 	if err != nil {
@@ -59,8 +58,8 @@ func (s *DefaultConnectorService) init() error {
 	return nil
 }
 
-// AddInstallation is called by the HTTP handler when it retrieved an installation request
-// It will persist the new installation and its configuration and register the new installation with the Giphy provider.
+// AddInstallation is called by the HTTP handler when it receives an installation request
+// It will persist the new installation and its configuration and register the new installation with the provider.
 func (s *DefaultConnectorService) AddInstallation(ctx context.Context, request connector.InstallationRequest) (*connector.InstallationResponse, error) {
 	s.logger.WithValues("installationRequest", request).Info("Received an installation request")
 
@@ -85,8 +84,8 @@ func (s *DefaultConnectorService) AddInstallation(ctx context.Context, request c
 	return nil, nil
 }
 
-// RemoveInstallation is called by the HTTP handler when it retrieved an installation removal request.
-// It will remove the installation from the database (including the installation token) and from the running Giphy provider.
+// RemoveInstallation is called by the HTTP handler when it receives an installation removal request.
+// It will remove the installation from the database (including the installation token) and from the provider.
 // Note that we will not be able to communicate with the connctd platform about the removed installation after this, since the token is deleted.
 func (s *DefaultConnectorService) RemoveInstallation(ctx context.Context, installationId string) error {
 	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
@@ -104,9 +103,9 @@ func (s *DefaultConnectorService) RemoveInstallation(ctx context.Context, instal
 	return nil
 }
 
-// AddInstantiation is called by the HTTP handler when it retrieved an instantiation request
-// It will persist the new instance, create a new Thing for the instance
-// and register the new instance with the Giphy provider.
+// AddInstantiation is called by the HTTP handler when it receives an instantiation request.
+// It will persist the new instance, create new things for the instance
+// and register the new instance with the provider.
 func (s *DefaultConnectorService) AddInstance(ctx context.Context, request connector.InstantiationRequest) (*connector.InstantiationResponse, error) {
 	s.logger.WithValues("instantiationRequest", request).Info("Received an instantiation request")
 
@@ -144,8 +143,8 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 	return nil, nil
 }
 
-// RemoveInstance is called by the HTTP handler when it retrieved an instance removal request.
-// It will remove the instance from the database (including the instance token) and from the running Giphy provider.
+// RemoveInstance is called by the HTTP handler when it receives an instance removal request.
+// It will remove the instance from the database (including the instance token) and from the provider.
 // Note that we will not be able to communicate with the connctd platform about the removed instance after this, since the token is deleted.
 func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, installationId string) error {
 	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
@@ -198,7 +197,7 @@ func (s *DefaultConnectorService) PerformAction(ctx context.Context, actionReque
 	return nil, nil
 }
 
-// EventHandler handles events coming from the giphy provider
+// EventHandler handles events coming from the provider
 func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 	// wait for update events
 	go func() {
