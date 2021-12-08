@@ -115,7 +115,9 @@ func AddInstallation(service ConnectorService) http.HandlerFunc {
 			w.Write(b)
 			return
 		}
-
+		// We set the content type to application/json to prevent ngrok from interpreting the response as HTML
+		// and serving a landing page instead.
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 	})
 }
