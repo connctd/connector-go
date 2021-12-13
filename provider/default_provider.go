@@ -1,3 +1,5 @@
+// Package provider implements the basic bookeeping needed by most providers.
+// It is meant to be embedded by provider implementations.
 package provider
 
 import (
@@ -56,7 +58,7 @@ func (p *DefaultProvider) ActionChannel() <-chan PendingAction {
 }
 
 // ActionEvent publishes the action event on the action event channel.
-// This can be used to implement a synchronous RequestAction() method in the provider.
+// This can be used to implement asynchronous RequestAction() method in the provider.
 func (p *DefaultProvider) ActionEvent(action PendingAction) {
 	p.actionChannel <- action
 }
@@ -108,7 +110,7 @@ func (p *DefaultProvider) RemoveInstallation(installationId string) error {
 // to the connector using the updates channel.
 // Synchronous actions can be implemented by overriding this method and returning a non pending action request status.
 func (p *DefaultProvider) RequestAction(ctx context.Context, instance *connector.Instance, actionRequest connector.ActionRequest) (restapi.ActionRequestStatus, error) {
-	p.actionChannel <- PendingAction{actionRequest, instance}
+	p.ActionEvent(PendingAction{actionRequest, instance})
 	return restapi.ActionRequestStatusPending, nil
 }
 
@@ -151,6 +153,14 @@ func (p *DefaultProvider) RemoveInstances() {
 func (p *DefaultProvider) AddNewInstances() {
 	p.Instances = append(p.Instances, p.newInstances...)
 	p.newInstances = nil
+}
+
+// Update will add all newly registered installations and instances and will remove the installations and instances that are marked for removal.
+func (p *DefaultProvider) Update() {
+	p.RemoveInstances()
+	p.AddNewInstances()
+	p.RemoveInstallations()
+	p.AddNewInstallations()
 }
 
 // findIndex return the index of the instance with the given id.

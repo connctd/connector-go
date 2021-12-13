@@ -38,7 +38,7 @@ type Instance struct {
 	ID             string             `db:"id" json:"id"`
 	InstallationID string             `db:"installation_id" json:"installationId"`
 	Token          InstantiationToken `db:"token" json:"token"`
-	ThingIDs       []string           `json:"thingIds"`
+	ThingMapping   []ThingMapping     `json:"things"`
 	Configuration  []Configuration    `json:"configuration"`
 }
 
@@ -55,3 +55,10 @@ func (i *Instance) GetConfig(id string) (*Configuration, bool) {
 
 // InstantiationToken can be used by a connector instance to send things or updates
 type InstantiationToken string
+
+// ThinkMapping represents a mapping of instances to things and devices.
+type ThingMapping struct {
+	InstanceID string `db:"instance_id" json:"-"`
+	ThingID    string `db:"thing_id" json:"thing_id"`
+	DeviceID   string `db:"device_id" json:"device_id"`
+}

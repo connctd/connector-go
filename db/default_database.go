@@ -1,3 +1,5 @@
+// Package db implements default implementations for the database interface used by the default service.
+// It currently supports Mysql, Postgres and Sqlite3.
 package db
 
 import (
@@ -32,6 +34,7 @@ var DefaultOptions = &DBOptions{
 
 type DBDriverName string
 
+// Supported database drivers:
 var (
 	DriverMysql      = DBDriverName("mysql")
 	DriverPostgresql = DBDriverName("postgres")
@@ -54,9 +57,10 @@ var (
 	statementGetThingsByInstanceID        = `SELECT thing_id FROM instance_thing_mapping WHERE instance_id = ?`
 	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
 
-	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id) VALUES (?, ?)`
+	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id, device_id) VALUES (?, ?, ?)`
 )
 
+// The default database layout:
 const (
 	StatementCreateInstallationTable = `CREATE TABLE installations (
 		id CHAR (36) NOT NULL,
@@ -99,6 +103,7 @@ const (
 	)`
 )
 
+// MigrationQueries will be executed when the connector calls Migrate:
 var MigrationQueries = []string{
 	StatementCreateInstallationTable,
 	StatementCreateInstanceTable,
@@ -123,6 +128,10 @@ func NewDBClient(dbOptions *DBOptions, logger logr.Logger) (*DBClient, error) {
 	return &DBClient{db, logger}, nil
 }
 
+// Migrate will execute all queries in MigrationQueries
+// It returns error if any of the queries fails to execute.
+// Migrate is not called by the default service but may be called once by the connector to initially migrate a database.
+// Note that MigrationQueries can be overwritten.
 func (m *DBClient) Migrate() error {
 	for _, q := range MigrationQueries {
 		_, err := m.DB.Exec(q)
@@ -226,11 +235,11 @@ func (m *DBClient) GetInstance(ctx context.Context, instanceId string) (*connect
 	}
 	instance.Configuration = config
 
-	things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
+	thingMapping, err := m.GetMappingByInstanceId(ctx, instance.ID)
 	if err != nil {
 		return nil, err
 	}
-	instance.ThingIDs = things
+	instance.ThingMapping = thingMapping
 
 	return &instance, nil
 }
@@ -249,11 +258,11 @@ func (m *DBClient) GetInstances(ctx context.Context) ([]*connector.Instance, err
 		}
 		instances[i].Configuration = config
 
-		things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
+		thingMapping, err := m.GetMappingByInstanceId(ctx, instance.ID)
 		if err != nil {
 			return nil, err
 		}
-		instance.ThingIDs = things
+		instance.ThingMapping = thingMapping
 	}
 	return instances, nil
 }
@@ -272,11 +281,11 @@ func (m *DBClient) GetInstanceByThingId(ctx context.Context, thingId string) (*c
 	}
 	instance.Configuration = config
 
-	things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
+	thingMapping, err := m.GetMappingByInstanceId(ctx, instance.ID)
 	if err != nil {
 		return nil, err
 	}
-	instance.ThingIDs = things
+	instance.ThingMapping = thingMapping
 
 	return &instance, nil
 }
@@ -292,14 +301,14 @@ func (m *DBClient) GetInstanceConfiguration(ctx context.Context, instanceId stri
 	return configurations, nil
 }
 
-// GetThingIDsByInstanceId returns all things mapped to the instance with the given id.
-func (m *DBClient) GetThingIDsByInstanceId(ctx context.Context, instanceId string) ([]string, error) {
-	var thingIDs []string
-	err := m.DB.Select(&thingIDs, statementGetThingsByInstanceID, instanceId)
+// GetMappingByInstanceId returns all things mapped to the instance with the given id.
+func (m *DBClient) GetMappingByInstanceId(ctx context.Context, instanceId string) ([]connector.ThingMapping, error) {
+	var thingMappings []connector.ThingMapping
+	err := m.DB.Select(&thingMappings, statementGetThingsByInstanceID, instanceId)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, fmt.Errorf("failed to retrieve thing ids %v", err)
 	}
-	return thingIDs, nil
+	return thingMappings, nil
 }
 
 // RemoveInstance removes the instance with the given id from the database.
@@ -315,9 +324,9 @@ func (m *DBClient) RemoveInstance(ctx context.Context, instanceId string) error 
 	return nil
 }
 
-// AddThingID updates the instance with the thing ID.
-func (m *DBClient) AddThingID(ctx context.Context, instanceId string, thingId string) error {
-	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId)
+// AddThingMapping adds a mapping of the instance id to a thing and device id.
+func (m *DBClient) AddThingMapping(ctx context.Context, instanceId string, thingId string, deviceId string) error {
+	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId, deviceId)
 	if err != nil {
 		return fmt.Errorf("failed to insert thing id: %w", err)
 	}

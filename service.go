@@ -1,3 +1,6 @@
+// Package connector implements a SDK for connector development.
+// In most cases it should be sufficient to use the default provider to implement the connector.Provider interface and use it with the default service and the connector handler.
+// For an example connector using this SDK to integrate an external API, see https://github.com/connctd/giphy-connector/.
 package connector
 
 import (
@@ -6,6 +9,8 @@ import (
 	"github.com/connctd/restapi-go"
 )
 
+// ConnectorService interface is used by the ConnectorHandler and will be called to process the validated requests used in the connector protocol.
+// The SDK provides a default implementation for the ConnectorService interface that should be sufficient for most connector developments.
 type ConnectorService interface {
 	AddInstallation(ctx context.Context, request InstallationRequest) (*InstallationResponse, error)
 	RemoveInstallation(ctx context.Context, installationId string) error
@@ -16,14 +21,10 @@ type ConnectorService interface {
 	PerformAction(ctx context.Context, request ActionRequest) (*ActionResponse, error)
 }
 
-type ThingService interface {
-	CreateThing(ctx context.Context, instanceId string, thing restapi.Thing) (restapi.Thing, error)
-	UpdateProperty(ctx context.Context, instanceId, componentId, propertyId, value string) error
-	UpdateActionStatus(ctx context.Context, instanceId string, actionRequestId string, actionResponse *ActionResponse) error
-}
-
 type ThingTemplates func(request InstantiationRequest) []restapi.Thing
 
+// Database interface is used in the default service to persist new installations, instances, configurations and device mappings.
+// The SDK provides a default implementation supporting Postgresql, Mysql and Sqlite3.
 type Database interface {
 	AddInstallation(ctx context.Context, installationRequest InstallationRequest) error
 	AddInstallationConfiguration(ctx context.Context, installationId string, config []Configuration) error
@@ -36,8 +37,8 @@ type Database interface {
 	GetInstances(ctx context.Context) ([]*Instance, error)
 	GetInstanceByThingId(ctx context.Context, thingId string) (*Instance, error)
 	GetInstanceConfiguration(ctx context.Context, instanceId string) ([]Configuration, error)
-	GetThingIDsByInstanceId(ctx context.Context, instanceId string) ([]string, error)
+	GetMappingByInstanceId(ctx context.Context, instanceId string) ([]ThingMapping, error)
 	RemoveInstance(ctx context.Context, instanceId string) error
 
-	AddThingID(ctx context.Context, instanceID string, thingID string) error
+	AddThingMapping(ctx context.Context, instanceID string, thingID string, deviceId string) error
 }
