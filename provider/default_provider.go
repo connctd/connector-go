@@ -14,21 +14,24 @@ var (
 )
 
 type DefaultProvider struct {
-	Installations     map[string]*connector.Installation
-	Instances         []*connector.Instance
-	actionChannel     chan PendingAction
-	updateChannel     chan connector.UpdateEvent
-	newInstances      []*connector.Instance
-	instancesToRemove []string
+	Installations         map[string]*connector.Installation
+	Instances             []*connector.Instance
+	actionChannel         chan PendingAction
+	updateChannel         chan connector.UpdateEvent
+	newInstances          []*connector.Instance
+	instancesToRemove     []string
+	newInstallations      []*connector.Installation
+	installationsToRemove []string
 }
 
 func New() DefaultProvider {
 	return DefaultProvider{
-		Installations: make(map[string]*connector.Installation),
-		Instances:     []*connector.Instance{},
-		newInstances:  []*connector.Instance{},
-		updateChannel: make(chan connector.UpdateEvent, updateChannelBufferSize),
-		actionChannel: make(chan PendingAction, actionChannelBufferSize),
+		Installations:    make(map[string]*connector.Installation),
+		Instances:        []*connector.Instance{},
+		newInstances:     []*connector.Instance{},
+		newInstallations: []*connector.Installation{},
+		updateChannel:    make(chan connector.UpdateEvent, updateChannelBufferSize),
+		actionChannel:    make(chan PendingAction, actionChannelBufferSize),
 	}
 }
 
@@ -83,9 +86,7 @@ func (p *DefaultProvider) RemoveInstance(instanceId string) error {
 // RegisterInstallations allows the connector to register new installations with the provider.
 // The provider needs access to the installation in order to use installation specific configuration parameters.
 func (p *DefaultProvider) RegisterInstallations(installations ...*connector.Installation) error {
-	for _, installation := range installations {
-		p.Installations[installation.ID] = installation
-	}
+	p.newInstallations = append(p.newInstallations, installations...)
 	return nil
 }
 
@@ -96,7 +97,7 @@ func (p *DefaultProvider) RemoveInstallation(installationId string) error {
 		return errors.New("installation not found")
 	}
 
-	delete(p.Installations, installationId)
+	p.installationsToRemove = append(p.installationsToRemove, installationId)
 
 	return nil
 }
@@ -109,6 +110,25 @@ func (p *DefaultProvider) RemoveInstallation(installationId string) error {
 func (p *DefaultProvider) RequestAction(ctx context.Context, instance *connector.Instance, actionRequest connector.ActionRequest) (restapi.ActionRequestStatus, error) {
 	p.actionChannel <- PendingAction{actionRequest, instance}
 	return restapi.ActionRequestStatusPending, nil
+}
+
+// AddNewInstallations will add all newly registered installations to p.Instances.
+// The provider is expected to call this to be able to use newly registered installations.
+func (p *DefaultProvider) AddNewInstallations() {
+	for _, installation := range p.newInstallations {
+		p.Installations[installation.ID] = installation
+	}
+}
+
+// RemoveInstallations removes all installations that are marked for removal.
+// It ignores installations that are not found.
+// The provider is expected to call this before using p.Installations.
+func (p *DefaultProvider) RemoveInstallations() {
+	for _, installationId := range p.installationsToRemove {
+		delete(p.Installations, installationId)
+	}
+
+	p.installationsToRemove = nil
 }
 
 // RemoveInstances removes all instances that are marked for removal.
@@ -127,7 +147,7 @@ func (p *DefaultProvider) RemoveInstances() {
 }
 
 // AddNewInstances will add all newly registered instances.
-// The provider is expected to call this before using p.Instances
+// The provider is expected to call this to be able to use newly registered instances.
 func (p *DefaultProvider) AddNewInstances() {
 	p.Instances = append(p.Instances, p.newInstances...)
 	p.newInstances = nil
