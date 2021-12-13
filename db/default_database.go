@@ -20,23 +20,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Database interface {
-	AddInstallation(ctx context.Context, installationRequest connector.InstallationRequest) error
-	AddInstallationConfiguration(ctx context.Context, installationId string, config []connector.Configuration) error
-	GetInstallations(ctx context.Context) ([]*connector.Installation, error)
-	RemoveInstallation(ctx context.Context, installationId string) error
-
-	AddInstance(ctx context.Context, instantiationRequest connector.InstantiationRequest) error
-	AddInstanceConfiguration(ctx context.Context, instanceId string, config []connector.Configuration) error
-	GetInstance(ctx context.Context, instanceId string) (*connector.Instance, error)
-	GetInstances(ctx context.Context) ([]*connector.Instance, error)
-	GetInstanceByThingId(ctx context.Context, thingId string) (*connector.Instance, error)
-	GetInstanceConfiguration(ctx context.Context, instanceId string) ([]connector.Configuration, error)
-	RemoveInstance(ctx context.Context, instanceId string) error
-
-	AddThingID(ctx context.Context, instanceID string, thingID string) error
-}
-
 type DBOptions struct {
 	Driver DBDriverName
 	DSN    string
@@ -75,13 +58,13 @@ var (
 )
 
 const (
-	statementCreateInstallationTable = `CREATE TABLE installations (
+	StatementCreateInstallationTable = `CREATE TABLE installations (
 		id CHAR (36) NOT NULL,
 		token TEXT NOT NULL,
 		UNIQUE(id)
 	)`
 
-	statementCreateInstanceTable = `CREATE TABLE instances (
+	StatementCreateInstanceTable = `CREATE TABLE instances (
 		id CHAR (36) NOT NULL,
 		token TEXT NOT NULL,
 		installation_id CHAR (36) NOT NULL,
@@ -91,14 +74,15 @@ const (
 			REFERENCES installations(id) ON DELETE CASCADE
 	)`
 
-	statementCreateInstaceThingMapping = `CREATE TABLE instance_thing_mapping (
+	StatementCreateInstaceThingMapping = `CREATE TABLE instance_thing_mapping (
 		instance_id CHAR (36) NOT NULL,
 		thing_id CHAR (36) NOT NULL,
+		device_id VARCHAR (255),
 		FOREIGN KEY (instance_id)
 			REFERENCES instances(id) ON DELETE CASCADE
 	)`
 
-	statementCreateInstallConfigTable = `CREATE TABLE installation_configuration (
+	StatementCreateInstallConfigTable = `CREATE TABLE installation_configuration (
 		installation_id CHAR (36) NOT NULL,
 		id CHAR (36) NOT NULL,
 		value VARCHAR (200) NOT NULL,
@@ -106,7 +90,7 @@ const (
 			REFERENCES installations(id) ON DELETE CASCADE
 	)`
 
-	statementCreateInstanceConfigTable = `CREATE TABLE instance_configuration (
+	StatementCreateInstanceConfigTable = `CREATE TABLE instance_configuration (
 		instance_id CHAR (36) NOT NULL,
 		id CHAR (36) NOT NULL,
 		value VARCHAR (200) NOT NULL,
@@ -115,12 +99,12 @@ const (
 	)`
 )
 
-var migrationQueries = []string{
-	statementCreateInstallationTable,
-	statementCreateInstanceTable,
-	statementCreateInstaceThingMapping,
-	statementCreateInstallConfigTable,
-	statementCreateInstanceConfigTable,
+var MigrationQueries = []string{
+	StatementCreateInstallationTable,
+	StatementCreateInstanceTable,
+	StatementCreateInstaceThingMapping,
+	StatementCreateInstallConfigTable,
+	StatementCreateInstanceConfigTable,
 }
 
 type DBClient struct {
@@ -140,7 +124,7 @@ func NewDBClient(dbOptions *DBOptions, logger logr.Logger) (*DBClient, error) {
 }
 
 func (m *DBClient) Migrate() error {
-	for _, q := range migrationQueries {
+	for _, q := range MigrationQueries {
 		_, err := m.DB.Exec(q)
 		if err != nil {
 			return fmt.Errorf("failed to migrate db (query: %v) %v", q, err)
@@ -242,7 +226,7 @@ func (m *DBClient) GetInstance(ctx context.Context, instanceId string) (*connect
 	}
 	instance.Configuration = config
 
-	things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+	things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +249,7 @@ func (m *DBClient) GetInstances(ctx context.Context) ([]*connector.Instance, err
 		}
 		instances[i].Configuration = config
 
-		things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+		things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +272,7 @@ func (m *DBClient) GetInstanceByThingId(ctx context.Context, thingId string) (*c
 	}
 	instance.Configuration = config
 
-	things, err := m.GetThingIDsByInstance(ctx, instance.ID)
+	things, err := m.GetThingIDsByInstanceId(ctx, instance.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -308,8 +292,8 @@ func (m *DBClient) GetInstanceConfiguration(ctx context.Context, instanceId stri
 	return configurations, nil
 }
 
-// GetThingIDsByInstance returns all things mapped to the instance with the given id.
-func (m *DBClient) GetThingIDsByInstance(ctx context.Context, instanceId string) ([]string, error) {
+// GetThingIDsByInstanceId returns all things mapped to the instance with the given id.
+func (m *DBClient) GetThingIDsByInstanceId(ctx context.Context, instanceId string) ([]string, error) {
 	var thingIDs []string
 	err := m.DB.Select(&thingIDs, statementGetThingsByInstanceID, instanceId)
 	if err != nil && err != sql.ErrNoRows {

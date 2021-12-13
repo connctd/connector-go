@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/connctd/connector-go"
-	"github.com/connctd/connector-go/db"
 	"github.com/connctd/restapi-go"
 	"github.com/go-logr/logr"
 )
@@ -15,14 +14,14 @@ import (
 // ConnectorService provides the callback functions used by the HTTP handler
 type DefaultConnectorService struct {
 	logger         logr.Logger
-	db             db.Database
+	db             connector.Database
 	connctdClient  connector.Client
 	provider       connector.Provider
 	thingTemplates connector.ThingTemplates
 }
 
 // NewConnectorService returns a new instance of the default connector
-func NewConnectorService(dbClient db.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, logger logr.Logger) (*DefaultConnectorService, error) {
+func NewConnectorService(dbClient connector.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, logger logr.Logger) (*DefaultConnectorService, error) {
 	connector := &DefaultConnectorService{
 		logger,
 		dbClient,

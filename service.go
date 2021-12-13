@@ -23,3 +23,21 @@ type ThingService interface {
 }
 
 type ThingTemplates func(request InstantiationRequest) []restapi.Thing
+
+type Database interface {
+	AddInstallation(ctx context.Context, installationRequest InstallationRequest) error
+	AddInstallationConfiguration(ctx context.Context, installationId string, config []Configuration) error
+	GetInstallations(ctx context.Context) ([]*Installation, error)
+	RemoveInstallation(ctx context.Context, installationId string) error
+
+	AddInstance(ctx context.Context, instantiationRequest InstantiationRequest) error
+	AddInstanceConfiguration(ctx context.Context, instanceId string, config []Configuration) error
+	GetInstance(ctx context.Context, instanceId string) (*Instance, error)
+	GetInstances(ctx context.Context) ([]*Instance, error)
+	GetInstanceByThingId(ctx context.Context, thingId string) (*Instance, error)
+	GetInstanceConfiguration(ctx context.Context, instanceId string) ([]Configuration, error)
+	GetThingIDsByInstanceId(ctx context.Context, instanceId string) ([]string, error)
+	RemoveInstance(ctx context.Context, instanceId string) error
+
+	AddThingID(ctx context.Context, instanceID string, thingID string) error
+}
