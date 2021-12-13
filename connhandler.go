@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/connctd/api-go"
 	"github.com/gorilla/mux"
 )
 
@@ -84,7 +85,7 @@ func NewProxiedConnectorHandler(subrouter *mux.Router, service ConnectorService,
 }
 
 // AddInstallation is called whenever a connector is installed via the connctd platform.
-// I will validate the request and delegate valid requests to the service.
+// It will validate the request and delegate valid requests to the service.
 // If the installation needs further steps, the service should respond with an InstallationResponse.
 // It is then the responsibility of the service to update the installation state as soon as the installation is completed.
 // If the installation is successfully completed, the service should return nil.
@@ -100,7 +101,15 @@ func AddInstallation(service ConnectorService) http.HandlerFunc {
 
 		response, err := service.AddInstallation(r.Context(), req)
 		if err != nil {
-			writeError(w, err)
+			writeStatus(w, err)
+			if response != nil {
+				b, err := json.Marshal(response)
+				if err != nil {
+					writeError(w, err)
+					return
+				}
+				w.Write(b)
+			}
 			return
 		}
 
@@ -138,12 +147,15 @@ func RemoveInstallation(service ConnectorService) http.HandlerFunc {
 			return
 		}
 
+		// We set the content type to application/json to prevent ngrok from interpreting the response as HTML
+		// and serving a landing page instead.
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	})
 }
 
 // AddInstance is called whenever a connector is instantiated via the connctd platform.
-// I will validate the request and delegate valid requests to the service.
+// It will validate the request and delegate valid requests to the service.
 // If the instantiation needs further steps, the service should respond with an InstantiationResponse.
 // It is then the responsibility of the service to update the instantiation state as soon as the instantiation is completed.
 // If the instantiation is successfully completed, the service should return nil.
@@ -158,7 +170,16 @@ func AddInstance(service ConnectorService) http.HandlerFunc {
 
 		response, err := service.AddInstance(r.Context(), req)
 		if err != nil {
-			writeError(w, err)
+			writeStatus(w, err)
+			if response != nil {
+				b, err := json.Marshal(response)
+				if err != nil {
+					writeError(w, err)
+					return
+				}
+				// Do not set a status code, since we want to keep the status set by the error.
+				w.Write(b)
+			}
 			return
 		}
 
@@ -174,6 +195,9 @@ func AddInstance(service ConnectorService) http.HandlerFunc {
 			return
 		}
 
+		// We set the content type to application/json to prevent ngrok from interpreting the response as HTML
+		// and serving a landing page instead.
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
 	})
@@ -195,12 +219,15 @@ func RemoveInstance(service ConnectorService) http.HandlerFunc {
 			return
 		}
 
+		// We set the content type to application/json to prevent ngrok from interpreting the response as HTML
+		// and serving a landing page instead.
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 	})
 }
 
 // PerformAction is called whenever an action is triggered via the connctd platform.
-// I will validate the action request and delegate valid requests to the service.
+// It will validate the action request and delegate valid requests to the service.
 // If the action is pending, the service should respond with an ActionResponse.
 // It is then the responsibility of the service to update the action request state as soon as the request is completed.
 // If the action is successfully completed, the service should return nil.
@@ -215,7 +242,16 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 
 		response, err := service.PerformAction(r.Context(), req)
 		if err != nil {
-			writeError(w, err)
+			writeStatus(w, err)
+			if response != nil {
+				b, err := json.Marshal(response)
+				if err != nil {
+					writeError(w, err)
+					return
+				}
+				// Do not set a status code, since we want to keep the status set by the error.
+				w.Write(b)
+			}
 			return
 		}
 
@@ -259,15 +295,24 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) er
 
 // helps to encode an error
 func writeError(w http.ResponseWriter, err error) {
-	var e Error
-	if errors.As(err, &e) {
-		e.WriteBody(w)
+	var e api.Error
+	if errors.As(err, e) {
+		e.Write(w)
 	} else {
-		e = Error{
-			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
-		}
+		api.NewError(
+			"INTERNAL_SERVER_ERROR",
+			err.Error(),
+			http.StatusInternalServerError,
+		).Write(w)
+	}
+}
 
-		e.WriteBody(w)
+// helps to set the status according to an error
+func writeStatus(w http.ResponseWriter, err error) {
+	var e api.Error
+	if errors.As(err, e) {
+		w.WriteHeader(e.Status)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
