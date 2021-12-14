@@ -88,11 +88,8 @@ func NewProxiedConnectorHandler(subrouter *mux.Router, service ConnectorService,
 
 // AddInstallation is called whenever a connector is installed via the connctd platform.
 // It will validate the request and delegate valid requests to the service.
-// If the installation is completed successfully, the service should return nil and no error.
-// If the installation needs further steps, the service should respond with an InstallationResponse and no error.
-// It is then the responsibility of the service to update the installation state as soon as the installation is completed.
-// In case of an error, the service should respond with an appropriate error from errors.go and can also return an InstallationResponse.
-// The status code will be set to one defined in the error and the InstallationResponse will be returned to the connctd platform.
+// It expects an error from errors.go.
+// The status code will be set to one defined in the error and the InstantiationResponse will be returned to the connctd platform.
 func AddInstallation(service ConnectorService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -134,7 +131,7 @@ func AddInstallation(service ConnectorService) http.HandlerFunc {
 	})
 }
 
-//RemoveInstallation is called whenever an installation is removed by the the connctd platform.
+// RemoveInstallation is called whenever an installation is removed by the the connctd platform.
 func RemoveInstallation(service ConnectorService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -159,11 +156,8 @@ func RemoveInstallation(service ConnectorService) http.HandlerFunc {
 
 // AddInstance is called whenever a connector is instantiated via the connctd platform.
 // It will validate the request and delegate valid requests to the service.
-// If the instantiation is completed successfully, the service should return nil and no error.
-// If the instantiation needs further steps, the service should respond with an InstantiationResponse and no error.
-// It is then the responsibility of the service to update the instantiation state as soon as the instantiation is completed.
-// In case of an error, the service should respond with an appropriate error from errors.go and can also return an InstantiationResponse.
-// The status code will be set to one defined in the error and the InstallationResponse will be returned to the connctd platform.
+// It expects an error from errors.go.
+// The status code will be set to one defined in the error and the InstantiationResponse will be returned to the connctd platform.
 func AddInstance(service ConnectorService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req InstantiationRequest

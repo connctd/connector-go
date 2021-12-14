@@ -12,11 +12,30 @@ import (
 // It implements registration and removal of installations and instances, as well as an update channel and asynchronous action request.
 // Connectors can use the update channel to push thing and action request updates to the connctd platform and should implemnet an action handler if they implement actions.
 type Provider interface {
+	// UpdateChannel is used by the connector service to receive update event.
+	// The provider can push updates to the underlying channel or use directly use the connctd API client.
 	UpdateChannel() <-chan UpdateEvent
-	RegisterInstances(instances ...*Instance) error
-	RemoveInstance(instanceId string) error
+
+	// RegisterInstallations is called by the connector service to register new installations
+	// Installations are registered whenever the service received an successful installation request or when the connector is started.
 	RegisterInstallations(installations ...*Installation) error
+
+	// RemoveInstance is called by the service if it received an installation removal request.
 	RemoveInstallation(installationId string) error
+
+	// RegisterInstances is called by the connector service to register new instances.
+	// Instances are registered whenever the service received an successful instantiation request or when the connector is started.
+	RegisterInstances(instances ...*Instance) error
+
+	// RemoveInstance is called by the service if it received an instance removal request.
+	RemoveInstance(instanceId string) error
+
+	// RequestAction is called by the connector service when it received an action request.
+	// The provider can execute the action synchronously and return an ActionRequestStatusCompleted or ActionRequestStatusFailed.
+	// If it returns ActionRequestStatusFailed it is expected to also return an error with details on the failing condition.
+	// In both cases an appropriate connector.ActionResponse is returned to the platform.
+	// The provider can also decide to execute the action request asynchronously and return an ActionRequestStatusPending.
+	// It is then the responsibility of the provider to update the action request as soon as it is finished.
 	RequestAction(ctx context.Context, instance *Instance, actionRequest ActionRequest) (restapi.ActionRequestStatus, error)
 }
 
