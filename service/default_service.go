@@ -1,5 +1,5 @@
 // Package service implements a default service that can be used to quickly implement a connector.
-// Together with connector.ConnectorHandler it implemnets the whole connector protocol.
+// Together with connector.ConnectorHandler it implements the whole connector protocol.
 // Developers can therefore focus on implementing technology specific details by implementing the Provider interface.
 // It will listen to the provider.UpdateChannel() and update thing properties and action requests.
 package service
@@ -230,7 +230,7 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 // CreateThing can be called by the connector to register a new thing for the given instance.
 // It retrieves the instance token from the database and uses the token to create a new thing via the connctd API client.
 // The new thing ID is then stored in the database referencing the instance id.
-func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId string, thing restapi.Thing, deviceId string) (*restapi.Thing, error) {
+func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId string, thing restapi.Thing, externalId string) (*restapi.Thing, error) {
 	instance, err := s.db.GetInstance(ctx, instanceId)
 	if err != nil {
 		s.logger.WithValues("instanceId", instanceId).Error(err, "failed to retrieve instance from database")
@@ -246,7 +246,7 @@ func (s *DefaultConnectorService) CreateThing(ctx context.Context, instanceId st
 	}
 
 	// Save the thing ID with the instance, so we have a mapping of things to instances.
-	err = s.db.AddThingMapping(ctx, instanceId, createdThing.ID, deviceId)
+	err = s.db.AddThingMapping(ctx, instanceId, createdThing.ID, externalId)
 	if err != nil {
 		s.logger.WithValues("thing", thing).Error(err, "failed to insert new Thing into database")
 		return nil, err

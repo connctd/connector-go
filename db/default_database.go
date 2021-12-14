@@ -57,7 +57,7 @@ var (
 	statementGetThingsByInstanceID        = `SELECT thing_id FROM instance_thing_mapping WHERE instance_id = ?`
 	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
 
-	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id, device_id) VALUES (?, ?, ?)`
+	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
 )
 
 // The default database layout:
@@ -81,7 +81,7 @@ const (
 	StatementCreateInstaceThingMapping = `CREATE TABLE instance_thing_mapping (
 		instance_id CHAR (36) NOT NULL,
 		thing_id CHAR (36) NOT NULL,
-		device_id VARCHAR (255),
+		external_id VARCHAR (255),
 		FOREIGN KEY (instance_id)
 			REFERENCES instances(id) ON DELETE CASCADE
 	)`
@@ -324,9 +324,9 @@ func (m *DBClient) RemoveInstance(ctx context.Context, instanceId string) error 
 	return nil
 }
 
-// AddThingMapping adds a mapping of the instance id to a thing and device id.
-func (m *DBClient) AddThingMapping(ctx context.Context, instanceId string, thingId string, deviceId string) error {
-	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId, deviceId)
+// AddThingMapping adds a mapping of the instance id to a thing and external id.
+func (m *DBClient) AddThingMapping(ctx context.Context, instanceId string, thingId string, externalId string) error {
+	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId, externalId)
 	if err != nil {
 		return fmt.Errorf("failed to insert thing id: %w", err)
 	}

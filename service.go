@@ -23,7 +23,7 @@ type ConnectorService interface {
 
 type ThingTemplates func(request InstantiationRequest) []restapi.Thing
 
-// Database interface is used in the default service to persist new installations, instances, configurations and device mappings.
+// Database interface is used in the default service to persist new installations, instances, configurations and external device mappings.
 // The SDK provides a default implementation supporting Postgresql, Mysql and Sqlite3.
 type Database interface {
 	AddInstallation(ctx context.Context, installationRequest InstallationRequest) error
@@ -40,5 +40,5 @@ type Database interface {
 	GetMappingByInstanceId(ctx context.Context, instanceId string) ([]ThingMapping, error)
 	RemoveInstance(ctx context.Context, instanceId string) error
 
-	AddThingMapping(ctx context.Context, instanceID string, thingID string, deviceId string) error
+	AddThingMapping(ctx context.Context, instanceID string, thingID string, externalId string) error
 }
