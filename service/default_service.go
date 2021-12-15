@@ -163,7 +163,7 @@ func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, instanceId
 	return nil
 }
 
-// HandleAction is called by the HTTP handler when it retrieved an action request.
+// HandleAction is called by the HTTP handler when it receives an action request.
 func (s *DefaultConnectorService) PerformAction(ctx context.Context, actionRequest connector.ActionRequest) (*connector.ActionResponse, error) {
 	s.logger.WithValues("actionRequest", actionRequest).Info("Received an action request")
 
@@ -214,11 +214,11 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 			if update.ActionEvent != nil {
 				actionEvent := update.ActionEvent
 				if err != nil {
-					actionEvent.ActionResponse.Status = restapi.ActionRequestStatusFailed
-					actionEvent.ActionResponse.Error = fmt.Sprintf("failed to update property %v", err)
+					actionEvent.Response.Status = restapi.ActionRequestStatusFailed
+					actionEvent.Response.Error = fmt.Sprintf("failed to update property %v", err)
 					s.logger.Error(err, "action failed: failed to update property")
 				}
-				err := s.UpdateActionStatus(ctx, actionEvent.InstanceId, actionEvent.ActionRequestId, actionEvent.ActionResponse)
+				err := s.UpdateActionStatus(ctx, actionEvent.InstanceId, actionEvent.RequestId, actionEvent.Response)
 				if err != nil {
 					s.logger.Error(err, "Failed to update action status")
 				}
