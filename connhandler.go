@@ -254,9 +254,6 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 		}
 
 		if response != nil {
-			if response.ID == "" {
-				response.ID = req.ID
-			}
 			b, err := json.Marshal(response)
 			if err != nil {
 				writeError(w, err)
