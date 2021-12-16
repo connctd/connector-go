@@ -263,8 +263,7 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 				return
 			}
 			w.Header().Add("Content-Type", "application/json")
-			// TODO: should this be http.StatusAccepted?
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusAccepted)
 			w.Write(b)
 			return
 		}
