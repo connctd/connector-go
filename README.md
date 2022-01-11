@@ -34,6 +34,8 @@ The following gives an overview of the structure of the SDK:
 ```
 ├── db
 │   └── default_database.go   # Default database implementation (Sqlite, Mysql, Postgres)
+├── models
+│   └── things.go             # Domain models for the connctd thing abstraction
 ├── provider
 │   └── default_provider.go   # Default provider implementation used by default service
 ├── service
@@ -49,7 +51,7 @@ The following gives an overview of the structure of the SDK:
 ├── handlers_test.go
 ├── LICENSE
 ├── messages.go               # Definitions of messages used in the connector protocol
-├── model.go                  # Models used by connectors
+├── model.go                  # Models specific to connectors
 ├── provider.go               # Interface definition used by the default service
 ├── README.md
 └── service.go                # Interface definitions for the service used by the connector handler

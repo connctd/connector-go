@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/connctd/api-go"
-	"github.com/connctd/restapi-go"
+	"github.com/connctd/connector-go/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -72,7 +72,7 @@ func TestCreateThing(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			thing, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
+			thing, err := client.CreateThing(context.Background(), "", models.Thing{Name: "DummyThing"})
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
@@ -269,7 +269,7 @@ func TestUpdateActionStatus(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			err = client.UpdateActionStatus(context.Background(), "", "fooid", restapi.ActionRequestStatusCompleted, "")
+			err = client.UpdateActionStatus(context.Background(), "", "fooid", ActionRequestStatusCompleted, "")
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
@@ -310,7 +310,7 @@ func TestUpdateThingStatus(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			err = client.UpdateThingStatus(context.Background(), "", "foothingid", restapi.StatusTypeAvailable)
+			err = client.UpdateThingStatus(context.Background(), "", "foothingid", models.StatusTypeAvailable)
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
