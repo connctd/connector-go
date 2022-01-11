@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/connctd/api-go"
+	"github.com/connctd/connector-go/api"
 	"github.com/gorilla/mux"
 )
 
@@ -289,8 +289,8 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) er
 
 // helps to encode an error
 func writeError(w http.ResponseWriter, err error) {
-	var e api.Error
-	if errors.As(err, e) {
+	var e *api.Error
+	if errors.As(err, &e) {
 		e.Write(w)
 	} else {
 		api.NewError(
@@ -303,8 +303,8 @@ func writeError(w http.ResponseWriter, err error) {
 
 // helps to set the status according to an error
 func writeStatus(w http.ResponseWriter, err error) {
-	var e api.Error
-	if errors.As(err, e) {
+	var e *api.Error
+	if errors.As(err, &e) {
 		w.WriteHeader(e.Status)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/connctd/api-go/crypto"
+	"github.com/connctd/connector-go/api/crypto"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +31,7 @@ func TestSignatureVerificationHandler(t *testing.T) {
 	assert.Nil(err)
 
 	// create signature validation handler
-	handler := http.Handler(NewSignatureValidationHandler(ProxiedRequestValidationPreProcessor(testServerURL.Scheme, testServerURL.Host, "/test"), pub, okHandler))
+	handler := http.Handler(NewSignatureValidationHandler(ProxiedRequestValidationPreProcessor(testServerURL.Scheme, testServerURL.Host), pub, okHandler))
 	testServer.Config = &http.Server{Handler: handler}
 
 	// sign message on our own
