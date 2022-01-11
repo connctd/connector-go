@@ -138,7 +138,7 @@ func RemoveInstallation(service ConnectorService) http.HandlerFunc {
 		id, ok := vars["id"]
 
 		if !ok {
-			writeError(w, ErrorMissingInstallationID)
+			writeError(w, api.ErrorMissingInstallationID)
 			return
 		}
 
@@ -208,7 +208,7 @@ func RemoveInstance(service ConnectorService) http.HandlerFunc {
 		id, ok := vars["id"]
 
 		if !ok {
-			writeError(w, ErrorMissingInstanceID)
+			writeError(w, api.ErrorMissingInstanceID)
 			return
 		}
 
@@ -272,16 +272,16 @@ func PerformAction(service ConnectorService) http.HandlerFunc {
 // helps to decode the request body
 func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) error {
 	if r.Header.Get("Content-Type") != "application/json" {
-		return ErrorBadContentType
+		return api.ErrorBadContentType
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return ErrorBadRequestBody
+		return api.ErrorBadRequestBody
 	}
 
 	if err = json.Unmarshal(body, dest); err != nil {
-		return ErrorInvalidJsonBody
+		return api.ErrorInvalidJsonBody
 	}
 
 	return nil

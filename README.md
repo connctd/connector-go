@@ -32,6 +32,11 @@ If you want to develop a connector in a different language, you can use it toget
 The following gives an overview of the structure of the SDK:
 
 ```
+├── api
+│   ├── crypto
+│   │   ├── signing.go        # Signature validation
+│   │   └── signing_test.go
+│   └── errors.go             # Error definitions
 ├── db
 │   └── default_database.go   # Default database implementation (Sqlite, Mysql, Postgres)
 ├── models
@@ -44,7 +49,6 @@ The following gives an overview of the structure of the SDK:
 ├── client.go                 # Client for the connctd connectorhub
 ├── client_test.go
 ├── connhandler.go            # Connector handler implementing endpoints for the connector protocol
-├── errors.go                 # Default error definitions
 ├── go.mod
 ├── go.sum
 ├── handlers.go               # Signature validation handlers for the connector protocol
