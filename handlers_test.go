@@ -32,7 +32,8 @@ func TestSignatureVerificationHandler(t *testing.T) {
 
 	// create signature validation handler
 	handler := http.Handler(NewSignatureValidationHandler(ProxiedRequestValidationPreProcessor(testServerURL.Scheme, testServerURL.Host), pub, okHandler))
-	testServer.Config = &http.Server{Handler: handler}
+	// Writing testServer.Config after the server was started causes a datarace, since testServer.Config is used as a closure in the started goroutine.
+	testServer.Config.Handler = handler
 
 	// sign message on our own
 	req, err := http.NewRequest("GET", testServer.URL+"/test", nil)
