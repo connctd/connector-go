@@ -57,5 +57,4 @@ The following gives an overview of the structure of the SDK:
 
 ## Contact
 
-Please use the provided templates for bug reports and feature requests and feel free to contact connctd at ...
-<!-- TODO Add contact -->
+Please use the provided templates for bug reports and feature requests and feel free to contact connctd at info@connctd.com.
