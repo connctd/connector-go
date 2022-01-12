@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/connctd/connector-go/api/crypto"
+	"github.com/connctd/connector-go/crypto"
 
 	"github.com/stretchr/testify/assert"
 )
