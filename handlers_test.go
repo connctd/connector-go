@@ -64,7 +64,7 @@ func signRequest(privateKey ed25519.PrivateKey, req *http.Request, body []byte) 
 		return err
 	}
 
-	signature := ed25519.Sign(privateKey, signable)
+	signature := crypto.Sign(privateKey, signable)
 	req.Header.Add(crypto.SignatureHeaderKey, base64.StdEncoding.EncodeToString(signature))
 
 	return nil
