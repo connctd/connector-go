@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"errors"
-	"github.com/connctd/api-go"
 	"io/ioutil"
 	"net/http"
 
@@ -289,11 +288,11 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) er
 
 // helps to encode an error
 func writeError(w http.ResponseWriter, err error) {
-	var e *api.Error
+	var e *Error
 	if errors.As(err, &e) {
 		e.Write(w)
 	} else {
-		api.NewError(
+		NewError(
 			"INTERNAL_SERVER_ERROR",
 			err.Error(),
 			http.StatusInternalServerError,
@@ -303,7 +302,7 @@ func writeError(w http.ResponseWriter, err error) {
 
 // helps to set the status according to an error
 func writeStatus(w http.ResponseWriter, err error) {
-	var e *api.Error
+	var e *Error
 	if errors.As(err, &e) {
 		w.WriteHeader(e.Status)
 	} else {

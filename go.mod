@@ -3,7 +3,6 @@ module github.com/connctd/connector-go
 go 1.14
 
 require (
-	github.com/connctd/api-go v0.0.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/db-journey/mysql-driver v1.0.1
 	github.com/db-journey/postgresql-driver v0.0.0-20190914135041-b502d4210454
