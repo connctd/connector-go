@@ -3,14 +3,13 @@ package connector
 import (
 	"context"
 	"encoding/json"
+	"github.com/connctd/connector-go/connctd"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
 
-	"github.com/connctd/api-go"
-	"github.com/connctd/restapi-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +30,7 @@ var createThingTests = []struct {
 	{
 		name: "Create thing fails on error response body",
 		handler: func(w http.ResponseWriter, r *http.Request) {
-			dummyError := api.NewError("Foo error", "Foo err description", http.StatusBadRequest)
+			dummyError := NewError("Foo error", "Foo err description", http.StatusBadRequest)
 			dummyError.Write(w)
 		},
 		expectedError: ErrorUnexpectedStatusCode,
@@ -72,7 +71,7 @@ func TestCreateThing(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			thing, err := client.CreateThing(context.Background(), "", restapi.Thing{Name: "DummyThing"})
+			thing, err := client.CreateThing(context.Background(), "", connctd.Thing{Name: "DummyThing"})
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
@@ -269,7 +268,7 @@ func TestUpdateActionStatus(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			err = client.UpdateActionStatus(context.Background(), "", "fooid", restapi.ActionRequestStatusCompleted, "")
+			err = client.UpdateActionStatus(context.Background(), "", "fooid", ActionRequestStatusCompleted, "")
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)
@@ -310,7 +309,7 @@ func TestUpdateThingStatus(t *testing.T) {
 			client, err := NewClient(&ClientOptions{ConnctdBaseURL: url}, DefaultLogger)
 			require.Nil(r, err)
 
-			err = client.UpdateThingStatus(context.Background(), "", "foothingid", restapi.StatusTypeAvailable)
+			err = client.UpdateThingStatus(context.Background(), "", "foothingid", connctd.StatusTypeAvailable)
 
 			if currTest.expectedError != nil {
 				assert.Equal(r, currTest.expectedError, err)

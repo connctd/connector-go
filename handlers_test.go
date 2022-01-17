@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/connctd/api-go/crypto"
+	"github.com/connctd/connector-go/crypto"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,8 +31,9 @@ func TestSignatureVerificationHandler(t *testing.T) {
 	assert.Nil(err)
 
 	// create signature validation handler
-	handler := http.Handler(NewSignatureValidationHandler(ProxiedRequestValidationPreProcessor(testServerURL.Scheme, testServerURL.Host, "/test"), pub, okHandler))
-	testServer.Config = &http.Server{Handler: handler}
+	handler := http.Handler(NewSignatureValidationHandler(ProxiedRequestValidationPreProcessor(testServerURL.Scheme, testServerURL.Host), pub, okHandler))
+	// Writing testServer.Config after the server was started causes a datarace, since testServer.Config is used as a closure in the started goroutine.
+	testServer.Config.Handler = handler
 
 	// sign message on our own
 	req, err := http.NewRequest("GET", testServer.URL+"/test", nil)
@@ -63,7 +64,7 @@ func signRequest(privateKey ed25519.PrivateKey, req *http.Request, body []byte) 
 		return err
 	}
 
-	signature := ed25519.Sign(privateKey, signable)
+	signature := crypto.Sign(privateKey, signable)
 	req.Header.Add(crypto.SignatureHeaderKey, base64.StdEncoding.EncodeToString(signature))
 
 	return nil

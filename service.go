@@ -6,7 +6,7 @@ package connector
 import (
 	"context"
 
-	"github.com/connctd/restapi-go"
+	"github.com/connctd/connector-go/connctd"
 )
 
 // ConnectorService interface is used by the ConnectorHandler and will be called to process the validated requests used in the connector protocol.
@@ -47,7 +47,8 @@ type ConnectorService interface {
 	PerformAction(ctx context.Context, request ActionRequest) (*ActionResponse, error)
 }
 
-type ThingTemplates func(request InstantiationRequest) []restapi.Thing
+// ThingTemplates is used by the default connector service to create a set of connctd.Thing for each new instantiation request.
+type ThingTemplates func(request InstantiationRequest) []connctd.Thing
 
 // Database interface is used in the default service to persist new installations, instances, configurations and external device mappings.
 // The SDK provides a default implementation supporting Postgresql, Mysql and Sqlite3.
