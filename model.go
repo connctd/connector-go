@@ -42,6 +42,16 @@ type Instance struct {
 	Configuration  []Configuration    `json:"configuration"`
 }
 
+// ThingIdByExternalId returns the ThingId that is mapped to the given externalID or false if no such mapping exists.
+func (i *Instance) ThingIdByExternalId(externalID string) (string, bool) {
+	for _, m := range i.ThingMapping {
+		if m.ExternalID == externalID {
+			return m.ThingID, true
+		}
+	}
+	return "", false
+}
+
 // GetConfig returns the configuration parameter with the given ID.
 // If the parameter was not found it returns false.
 func (i *Instance) GetConfig(id string) (*Configuration, bool) {
