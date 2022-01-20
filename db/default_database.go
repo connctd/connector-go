@@ -57,7 +57,7 @@ var (
 	statementGetThingsByInstanceID        = `SELECT thing_id FROM instance_thing_mapping WHERE instance_id = ?`
 	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
 
-	statementInsertThingId = `INSERT instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
+	statementInsertThingId = `INSERT INTO instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
 )
 
 // The default database layout:
