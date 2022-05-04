@@ -39,7 +39,9 @@ func DefaultOptions() *ClientOptions {
 
 	return &ClientOptions{
 		ConnctdBaseURL: url,
-		HTTPClient:     http.DefaultClient,
+		HTTPClient: &http.Client{
+			Timeout: time.Second * 5,
+		},
 	}
 }
 

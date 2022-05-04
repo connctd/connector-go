@@ -13,3 +13,12 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/stretchr/testify v1.6.1
 )
+
+require (
+	github.com/db-journey/migrate v2.0.0+incompatible // indirect
+	github.com/db-journey/migrate/v2 v2.0.4 // indirect
+	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/lib/pq v1.2.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+)
