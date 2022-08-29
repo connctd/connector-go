@@ -56,10 +56,10 @@ type Client interface {
 	// Otherwise an error is returned.
 	CreateThing(ctx context.Context, token InstantiationToken, thing connctd.Thing) (result connctd.Thing, err error)
 
-	// It returns an error if the update was not successful.
+	// UpdateThingPropertyValue returns an error if the update was not successful.
 	UpdateThingPropertyValue(ctx context.Context, token InstantiationToken, thingID string, componentID string, propertyID string, value string, lastUpdate time.Time) error
 
-	// UpdateThingStatus updated the status of a thing.
+	// UpdateThingStatus updates the status of a thing.
 	// It can be used to set the availability of a thing.
 	UpdateThingStatus(ctx context.Context, token InstantiationToken, thingID string, status connctd.StatusType) error
 

@@ -183,7 +183,7 @@ func (m *DBClient) GetInstallations(ctx context.Context) ([]*connector.Installat
 	return installations, nil
 }
 
-// RemoveInstance removes the instance with the given id from the database.
+// RemoveInstallation removes the instance with the given id from the database.
 // This will also remove instances belonging to this installation, as well as the configuration parameters.
 // Removal of config parameters and instances is implemented via cascading foreign keys in the database.
 // If your database does not support cascading foreign keys, you should delete them manually.
