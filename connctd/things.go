@@ -19,7 +19,7 @@ type Thing struct {
 	Manufacturer    string           `json:"manufacturer"`
 	DisplayType     string           `json:"displayType"`
 	MainComponentID string           `json:"mainComponentId"`
-	Status          StatusType       `json:"status"`
+	Status          StatusType       `json:"status,omitempty"`
 	Components      []Component      `json:"components"`
 	Attributes      []ThingAttribute `json:"attributes,omitempty"`
 }
