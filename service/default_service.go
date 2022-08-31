@@ -67,7 +67,7 @@ func (s *DefaultConnectorService) AddInstallation(ctx context.Context, request c
 	s.logger.WithValues("installationRequest", request).Info("Received an installation request")
 
 	if err := s.db.AddInstallation(ctx, request); err != nil {
-		s.logger.Error(err, "Failed to add installation")
+		s.logger.WithValues("installationRequest", request).Error(err, "Failed to add installation")
 		return nil, err
 	}
 
@@ -94,7 +94,7 @@ func (s *DefaultConnectorService) RemoveInstallation(ctx context.Context, instal
 	s.logger.WithValues("installationId", installationId).Info("Received an installation removal request")
 
 	if err := s.provider.RemoveInstallation(installationId); err != nil {
-		s.logger.Error(err, "tried to remove installation that is not registered")
+		s.logger.WithValues("installationID", installationId).Error(err, "tried to remove installation that is not registered")
 	}
 
 	if err := s.db.RemoveInstallation(ctx, installationId); err != nil {
@@ -111,7 +111,7 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 	s.logger.WithValues("instantiationRequest", request).Info("Received an instantiation request")
 
 	if err := s.db.AddInstance(ctx, request); err != nil {
-		s.logger.Error(err, "Failed to add instance")
+		s.logger.WithValues("instantiationRequest", request).Error(err, "Failed to add instance")
 		return nil, err
 	}
 
@@ -127,7 +127,7 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 	for i, template := range thingTemplates {
 		thing, err := s.CreateThing(ctx, request.ID, template.Thing, template.ExternalID)
 		if err != nil {
-			s.logger.Error(err, "Failed to create new thing")
+			s.logger.WithValues("thing", template).Error(err, "Failed to create new thing")
 			return nil, err
 		}
 		thingMapping[i] = connector.ThingMapping{
@@ -155,7 +155,7 @@ func (s *DefaultConnectorService) RemoveInstance(ctx context.Context, instanceId
 	s.logger.WithValues("instanceId", instanceId).Info("Received an instance removal request")
 
 	if err := s.provider.RemoveInstance(instanceId); err != nil {
-		s.logger.Error(err, "tried to remove instance that is not registered")
+		s.logger.WithValues("instanceId", instanceId).Error(err, "tried to remove instance that is not registered")
 	}
 
 	if err := s.db.RemoveInstance(ctx, instanceId); err != nil {
@@ -177,7 +177,7 @@ func (s *DefaultConnectorService) PerformAction(ctx context.Context, actionReque
 
 	status, err := s.provider.RequestAction(ctx, instance, actionRequest)
 	if err != nil {
-		s.logger.Error(err, "failed to perform action")
+		s.logger.WithValues("actionRequest", actionRequest).Error(err, "failed to perform action")
 		return &connector.ActionResponse{Status: status, Error: err.Error()}, err
 	}
 
@@ -210,7 +210,7 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 				propertyUpdate := update.PropertyUpdateEvent
 				err = s.UpdateProperty(ctx, propertyUpdate.InstanceId, propertyUpdate.ThingId, propertyUpdate.ComponentId, propertyUpdate.PropertyId, propertyUpdate.Value)
 				if err != nil {
-					s.logger.Error(err, "failed to update property")
+					s.logger.WithValues("propertyUpdate", propertyUpdate).Error(err, "failed to update property")
 				}
 			}
 			if update.ActionEvent != nil {
@@ -218,11 +218,11 @@ func (s *DefaultConnectorService) EventHandler(ctx context.Context) {
 				if err != nil {
 					actionEvent.Response.Status = connector.ActionRequestStatusFailed
 					actionEvent.Response.Error = fmt.Sprintf("failed to update property %v", err)
-					s.logger.Error(err, "action failed: failed to update property")
+					s.logger.WithValues("actionEvent", actionEvent).Error(err, "action failed: failed to update property")
 				}
 				err := s.UpdateActionStatus(ctx, actionEvent.InstanceId, actionEvent.RequestId, actionEvent.Response)
 				if err != nil {
-					s.logger.Error(err, "Failed to update action status")
+					s.logger.WithValues("actionEvent", actionEvent).Error(err, "Failed to update action status")
 				}
 			}
 		}

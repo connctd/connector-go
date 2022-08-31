@@ -35,7 +35,7 @@ func baseConnectorHandler(subrouter *mux.Router, service ConnectorService) *Conn
 	return c
 }
 
-// NewAutoProxyConnectorHandler returns a connector handler that detects proxies and modifies the validation parameters
+// NewConnectorHandler returns a connector handler that detects proxies and modifies the validation parameters
 // for the signature validation. This should be used by default and should also work without any proxies in place.
 // Note that the proxy has to set the correct headers for this to work. See AutoProxyRequestValidationPreProcessor for more information.
 func NewConnectorHandler(subrouter *mux.Router, service ConnectorService, publicKey ed25519.PublicKey) *ConnectorHandler {
@@ -58,7 +58,7 @@ func NewConnectorHandler(subrouter *mux.Router, service ConnectorService, public
 	return c
 }
 
-// NewConnectorHandler lets you manually set the host used for the signature validation.
+// NewProxiedConnectorHandler lets you manually set the host used for the signature validation.
 // This can be usefull if you are behind a proxy that doesn't set the correct headers.
 // Note that we set the protocol to "https" since this is the only protocol supported by connctd.
 func NewProxiedConnectorHandler(subrouter *mux.Router, service ConnectorService, host string, publicKey ed25519.PublicKey) *ConnectorHandler {

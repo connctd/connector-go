@@ -142,7 +142,7 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 
 	resp, err := a.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
-		a.logger.Error(err, "Failed to create thing", "name", thing.Name)
+		a.logger.WithValues("thing", thing).Error(err, "Failed to create thing", "name", thing.Name)
 		return connctd.Thing{}, fmt.Errorf("failed to create thing: %w", err)
 	}
 
