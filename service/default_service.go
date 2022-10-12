@@ -30,22 +30,22 @@ type ConnectorServiceOptions struct {
 	// if true connector will immediately respond to instance creation requests and asynchronously
 	// creates thing descriptions. Useful if there is a high chance that an instance needs to create
 	// multiple things
-	asyncInstanceCreation bool
+	AsyncInstanceCreation bool
 
 	// if true instance creation will fail if at least one thing can not be created. You cannot
 	// enforce thing creation if asyncInstanceCreation is enabled
-	enforceThingCreation bool
+	EnforceThingCreation bool
 }
 
 var DefaultConnectorServiceOptions = ConnectorServiceOptions{
-	asyncInstanceCreation: false,
-	enforceThingCreation:  true,
+	AsyncInstanceCreation: false,
+	EnforceThingCreation:  true,
 }
 
 // NewConnectorService returns a new instance of the default connector.
 func NewConnectorService(dbClient connector.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, options ConnectorServiceOptions, logger logr.Logger) (*DefaultConnectorService, error) {
 	// check for invalid settings
-	if options.asyncInstanceCreation && options.enforceThingCreation {
+	if options.AsyncInstanceCreation && options.EnforceThingCreation {
 		return nil, errors.New("enforced thing creation cant be enabled when async instance creation is enabled")
 	}
 
@@ -147,7 +147,7 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 
 	thingTemplates := s.thingTemplates(request)
 
-	if s.options.asyncInstanceCreation {
+	if s.options.AsyncInstanceCreation {
 		go s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates)
 	} else {
 		if err := s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates); err != nil {
@@ -166,7 +166,7 @@ func (s *DefaultConnectorService) synchronizeThings(ctx context.Context, instanc
 			s.logger.WithValues("thing", template).Error(err, "Failed to create new thing")
 
 			// return error and abort instance creation
-			if s.options.enforceThingCreation && !s.options.asyncInstanceCreation {
+			if s.options.EnforceThingCreation && !s.options.AsyncInstanceCreation {
 				s.logger.Info("Cancelling instance creation since enforeThingCreation is enabled")
 				return err
 			}
