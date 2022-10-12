@@ -23,16 +23,39 @@ type DefaultConnectorService struct {
 	connctdClient  connector.Client
 	provider       connector.Provider
 	thingTemplates connector.ThingTemplates
+	options        ConnectorServiceOptions
+}
+
+type ConnectorServiceOptions struct {
+	// if true connector will immediately respond to instance creation requests and asynchronously
+	// creates thing descriptions. Useful if there is a high chance that an instance needs to create
+	// multiple things
+	asyncInstanceCreation bool
+
+	// if true instance creation will fail if at least one thing can not be created. You cannot
+	// enforce thing creation if asyncInstanceCreation is enabled
+	enforceThingCreation bool
+}
+
+var DefaultConnectorServiceOptions = ConnectorServiceOptions{
+	asyncInstanceCreation: false,
+	enforceThingCreation:  true,
 }
 
 // NewConnectorService returns a new instance of the default connector.
-func NewConnectorService(dbClient connector.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, logger logr.Logger) (*DefaultConnectorService, error) {
+func NewConnectorService(dbClient connector.Database, connctdClient connector.Client, provider connector.Provider, thingTemplates connector.ThingTemplates, options ConnectorServiceOptions, logger logr.Logger) (*DefaultConnectorService, error) {
+	// check for invalid settings
+	if options.asyncInstanceCreation && options.enforceThingCreation {
+		return nil, errors.New("enforced thing creation cant be enabled when async instance creation is enabled")
+	}
+
 	connector := &DefaultConnectorService{
 		logger,
 		dbClient,
 		connctdClient,
 		provider,
 		thingTemplates,
+		options,
 	}
 
 	err := connector.init()
@@ -123,29 +146,51 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 	}
 
 	thingTemplates := s.thingTemplates(request)
-	thingMapping := make([]connector.ThingMapping, len(thingTemplates))
-	for i, template := range thingTemplates {
-		thing, err := s.CreateThing(ctx, request.ID, template.Thing, template.ExternalID)
-		if err != nil {
-			s.logger.WithValues("thing", template).Error(err, "Failed to create new thing")
+
+	if s.options.asyncInstanceCreation {
+		go s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates)
+	} else {
+		if err := s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates); err != nil {
 			return nil, err
-		}
-		thingMapping[i] = connector.ThingMapping{
-			InstanceID: request.ID,
-			ThingID:    thing.ID,
-			ExternalID: template.ExternalID,
 		}
 	}
 
+	return nil, nil
+}
+
+func (s *DefaultConnectorService) synchronizeThings(ctx context.Context, instanceID string, installationID string, token connector.InstantiationToken, configuration []connector.Configuration, thingTemplates []connector.ThingTemplate) error {
+	thingMapping := []connector.ThingMapping{}
+	for _, template := range thingTemplates {
+		thing, err := s.CreateThing(ctx, instanceID, template.Thing, template.ExternalID)
+		if err != nil {
+			s.logger.WithValues("thing", template).Error(err, "Failed to create new thing")
+
+			// return error and abort instance creation
+			// if async instance creation is et to true thing errors are neglected
+			if s.options.enforceThingCreation && !s.options.asyncInstanceCreation {
+				s.logger.Info("Cancelling instance creation since enforeThingCreation is enabled")
+				return err
+			}
+
+			continue
+		}
+
+		thingMapping = append(thingMapping, connector.ThingMapping{
+			InstanceID: instanceID,
+			ThingID:    thing.ID,
+			ExternalID: template.ExternalID,
+		})
+	}
+
 	s.provider.RegisterInstances(&connector.Instance{
-		ID:             request.ID,
-		InstallationID: request.InstallationID,
-		Token:          request.Token,
+		ID:             instanceID,
+		InstallationID: installationID,
+		Token:          token,
 		ThingMapping:   thingMapping,
-		Configuration:  request.Configuration,
+		Configuration:  configuration,
 	})
 
-	return nil, nil
+	return nil
 }
 
 // RemoveInstance is called by the HTTP handler when it receives an instance removal request.
