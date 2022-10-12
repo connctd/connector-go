@@ -166,7 +166,6 @@ func (s *DefaultConnectorService) synchronizeThings(ctx context.Context, instanc
 			s.logger.WithValues("thing", template).Error(err, "Failed to create new thing")
 
 			// return error and abort instance creation
-			// if async instance creation is et to true thing errors are neglected
 			if s.options.enforceThingCreation && !s.options.asyncInstanceCreation {
 				s.logger.Info("Cancelling instance creation since enforeThingCreation is enabled")
 				return err
