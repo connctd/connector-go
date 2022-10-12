@@ -148,7 +148,7 @@ func (s *DefaultConnectorService) AddInstance(ctx context.Context, request conne
 	thingTemplates := s.thingTemplates(request)
 
 	if s.options.AsyncInstanceCreation {
-		go s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates)
+		go s.synchronizeThings(context.Background(), request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates)
 	} else {
 		if err := s.synchronizeThings(ctx, request.ID, request.InstallationID, request.Token, request.Configuration, thingTemplates); err != nil {
 			return nil, err
