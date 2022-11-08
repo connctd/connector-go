@@ -5,9 +5,10 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"errors"
-	"github.com/connctd/connector-go/crypto"
-	"io/ioutil"
+	"io"
 	"net/http"
+
+	"github.com/connctd/connector-go/crypto"
 )
 
 type signatureValidationHandler struct {
@@ -37,7 +38,7 @@ func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 	// in case body is given
 	if r.ContentLength != 0 {
-		body, err = ioutil.ReadAll(r.Body)
+		body, err = io.ReadAll(r.Body)
 		if err != nil {
 			ErrorInvalidBody.Write(w)
 			return
@@ -61,7 +62,7 @@ func (h *signatureValidationHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 	// verify the signature
 	if crypto.Verify(h.publicKey, signaturePayload, decodedSignature) {
-		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+		r.Body = io.NopCloser(bytes.NewReader(body))
 		h.next.ServeHTTP(w, r)
 	} else {
 		ErrorBadSignature.Write(w)

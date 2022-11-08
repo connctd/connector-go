@@ -14,10 +14,11 @@ github.com/db-journey/mysql-driver v1.0.1/go.mod h1:wNNENzkYd7c2OA6EcKR0XiU7S4Iu
 github.com/db-journey/postgresql-driver v0.0.0-20190914135041-b502d4210454 h1:RUDSmkM9o4LBaX7/cH8bPtMjLZI7XGE5W+ZXISS5MMM=
 github.com/db-journey/postgresql-driver v0.0.0-20190914135041-b502d4210454/go.mod h1:AP+PCklq/+0BGQCHEMCHptAKB/r7wDgPIySiXUJcdC0=
 github.com/db-journey/sqlite3-driver v0.0.0-20190914135101-61d2f23fe986/go.mod h1:oAgZvQ7a7W1PbSiwN+nU0CsChB4ciAsVmYVeVrfie8w=
-github.com/go-logr/logr v0.3.0 h1:q4c+kbcR0d5rSurhBR8dIgieOaYpXtsdTYfx22Cu6rs=
-github.com/go-logr/logr v0.3.0/go.mod h1:z6/tIYblkpsD+a4lm/fGIIU9mZ+XfAiaFtq7xTgseGU=
-github.com/go-logr/stdr v0.3.0 h1:GzFt/sOHlPMqsh46UTAaIDWPFq3DdNGcF4rwMjhTBVo=
-github.com/go-logr/stdr v0.3.0/go.mod h1:NO1vneyJDqKVgJYnxhwXWWmQPOvNM391IG3H8ql3jiA=
+github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
+github.com/go-logr/logr v1.2.3 h1:2DntVwHkVopvECVRSlL5PSo9eG+cAkDCuckLubN+rq0=
+github.com/go-logr/logr v1.2.3/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
+github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
+github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=

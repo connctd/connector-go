@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -98,10 +98,6 @@ func NewClient(opts *ClientOptions, logger logr.Logger) (Client, error) {
 	httpClient := http.DefaultClient
 	url, _ := url.Parse(APIBaseURL)
 
-	if logger == nil {
-		return nil, ErrorMissingLogger
-	}
-
 	if opts != nil {
 		if opts.HTTPClient != nil {
 			httpClient = opts.HTTPClient
@@ -148,7 +144,7 @@ func (a *APIClient) CreateThing(ctx context.Context, token InstantiationToken, t
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return connctd.Thing{}, fmt.Errorf("could not read response body: %w", err)
 	}
@@ -261,7 +257,7 @@ func (a *APIClient) doRequest(ctx context.Context, method string, endpoint strin
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Error(err, "Failed to read response body")
 		return fmt.Errorf("could not read response body: %w", err)

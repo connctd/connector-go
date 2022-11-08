@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -200,7 +200,7 @@ func AddInstance(service ConnectorService) http.HandlerFunc {
 	})
 }
 
-//RemoveInstance is called whenever an instance is removed by the the connctd platform.
+// RemoveInstance is called whenever an instance is removed by the the connctd platform.
 func RemoveInstance(service ConnectorService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -277,7 +277,7 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dest interface{}) er
 		return ErrorBadContentType
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return ErrorBadRequestBody
 	}

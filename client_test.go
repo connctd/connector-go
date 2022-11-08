@@ -3,12 +3,13 @@ package connector
 import (
 	"context"
 	"encoding/json"
-	"github.com/connctd/connector-go/connctd"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/connctd/connector-go/connctd"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -128,9 +129,6 @@ func TestDeleteThing(t *testing.T) {
 func TestParametersValidation(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
-
-	_, err := NewClient(DefaultOptions(), nil)
-	assert.Equal(err, ErrorMissingLogger)
 
 	u, err := url.Parse("https://foobar")
 	require.Nil(err)
