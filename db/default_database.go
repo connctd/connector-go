@@ -42,11 +42,12 @@ var (
 )
 
 var (
-	statementInsertInstallation               = `INSERT INTO installations (id, token) VALUES (?, ?)`
-	statementInsertInstallationConfig         = `INSERT INTO installation_configuration (installation_id, id, value) VALUES (?, ?, ?)`
-	statementGetInstallations                 = `SELECT id FROM installations`
-	statementGetConfigurationByInstallationID = `SELECT id, value FROM installation_configuration WHERE installation_id = ?`
-	statementRemoveInstallationById           = `DELETE FROM installations WHERE id = ?`
+	statementInsertInstallation                       = `INSERT INTO installations (id, token) VALUES (?, ?)`
+	statementInsertInstallationConfig                 = `INSERT INTO installation_configuration (installation_id, id, value) VALUES (?, ?, ?)`
+	statementGetInstallations                         = `SELECT id FROM installations`
+	statementGetConfigurationByInstallationID         = `SELECT id, value FROM installation_configuration WHERE installation_id = ?`
+	statementGetInstallationConfigurationByInstanceID = `SELECT l.id AS id, l.value AS value FROM installation_configuration l, instances i WHERE i.id = ? AND l.installation_id = i.installation_id`
+	statementRemoveInstallationById                   = `DELETE FROM installations WHERE id = ?`
 
 	statementInsertInstance               = `INSERT INTO instances (id, installation_id, token) VALUES (?, ?, ?)`
 	statementGetInstanceByID              = `SELECT id, token, installation_id FROM instances WHERE id = ?`
@@ -181,6 +182,16 @@ func (m *DBClient) GetInstallations(ctx context.Context) ([]*connector.Installat
 		installations[i].Configuration = configurations
 	}
 	return installations, nil
+}
+
+// GetInstancesInstallationConfiguration retrieves the configuration of the installation of an instance
+func (m *DBClient) GetInstancesInstallationConfiguration(ctx context.Context, instanceID string) ([]*connector.Configuration, error) {
+	var configurations []*connector.Configuration
+	if err := m.DB.Select(&configurations, statementGetInstallationConfigurationByInstanceID, instanceID); err != nil {
+		return nil, fmt.Errorf("failed to retrieve instances installation configuration: %w", err)
+	}
+
+	return configurations, nil
 }
 
 // RemoveInstallation removes the instance with the given id from the database.
