@@ -60,6 +60,8 @@ var (
 	statementRemoveInstanceById = `DELETE FROM instances WHERE id = ?`
 
 	statementInsertThingId = `INSERT INTO instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
+
+	statementRemoveThingMapping = `DELETE FROM instance_thing_mapping WHERE instance_id = ? AND thing_id = ?`
 )
 
 // The default database layout:
@@ -344,4 +346,17 @@ func (m *DBClient) GetMappingByExternalId(ctx context.Context, instanceId string
 		return nil, fmt.Errorf("failed to retrieve thing by external id %v", err)
 	}
 	return &thingMapping, nil
+}
+
+// RemoveThingMapping removes a thing mapping with given instance and thing id
+func (m *DBClient) RemoveThingMapping(ctx context.Context, instanceID string, thingID string) error {
+	_, err := m.DB.Exec(statementRemoveThingMapping, instanceID, thingID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return connector.ErrorMappingNotFound
+		}
+		return fmt.Errorf("failed to remove mapping: %w", err)
+	}
+
+	return nil
 }

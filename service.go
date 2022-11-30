@@ -80,4 +80,5 @@ type Database interface {
 	RemoveInstance(ctx context.Context, instanceId string) error
 
 	AddThingMapping(ctx context.Context, instanceID string, thingID string, externalId string) error
+	RemoveThingMapping(ctx context.Context, instanceID string, thingID string) error
 }

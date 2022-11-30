@@ -19,6 +19,7 @@ var (
 	ErrorForbidden             = NewError("FORBIDDEN", "Insufficient rights", http.StatusForbidden)
 	ErrorUnauthorized          = NewError("NOT_AUTHORIZED", "Not authorized", http.StatusUnauthorized)
 	ErrorInternal              = NewError("INTERNAL_SERVER_ERROR", "Internal server error", http.StatusInternalServerError)
+	ErrorMappingNotFound       = NewError("MAPPING_NOT_FOUND", "Mapping not found", http.StatusNotFound)
 )
 
 // NewError constructs an error
