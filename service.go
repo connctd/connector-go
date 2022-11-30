@@ -76,6 +76,7 @@ type Database interface {
 	GetInstanceByThingId(ctx context.Context, thingId string) (*Instance, error)
 	GetInstanceConfiguration(ctx context.Context, instanceId string) ([]Configuration, error)
 	GetMappingByInstanceId(ctx context.Context, instanceId string) ([]ThingMapping, error)
+	GetMappingByExternalId(ctx context.Context, instanceId string, externalID string) (*ThingMapping, error)
 	RemoveInstance(ctx context.Context, instanceId string) error
 
 	AddThingMapping(ctx context.Context, instanceID string, thingID string, externalId string) error

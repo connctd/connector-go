@@ -55,7 +55,9 @@ var (
 	statementInsertInstanceConfig         = `INSERT INTO instance_configuration (instance_id, id, value) VALUES (?, ?, ?)`
 	statementGetConfigurationByInstanceID = `SELECT id, value FROM instance_configuration WHERE instance_id = ?`
 	statementGetThingsByInstanceID        = `SELECT instance_id, thing_id, external_id FROM instance_thing_mapping WHERE instance_id = ?`
-	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
+	statementGetThingsByExternalID        = `SELECT instance_id, thing_id, external_id FROM instance_thing_mapping WHERE instance_id = ? AND external_id = ?`
+
+	statementRemoveInstanceById = `DELETE FROM instances WHERE id = ?`
 
 	statementInsertThingId = `INSERT INTO instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
 )
@@ -332,4 +334,14 @@ func (m *DBClient) AddThingMapping(ctx context.Context, instanceId string, thing
 	}
 
 	return nil
+}
+
+// GetMappingByExternalId searches for a thing mapping with specific external id
+func (m *DBClient) GetMappingByExternalId(ctx context.Context, instanceId string, externalID string) (*connector.ThingMapping, error) {
+	var thingMapping connector.ThingMapping
+	err := m.DB.Get(&thingMapping, statementGetThingsByExternalID, instanceId, externalID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to retrieve thing by external id %v", err)
+	}
+	return &thingMapping, nil
 }
