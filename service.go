@@ -68,6 +68,7 @@ type Database interface {
 	AddInstallationConfiguration(ctx context.Context, installationId string, config []Configuration) error
 	GetInstallations(ctx context.Context) ([]*Installation, error)
 	RemoveInstallation(ctx context.Context, installationId string) error
+	GetInstancesInstallationConfiguration(ctx context.Context, instanceID string) ([]*Configuration, error)
 
 	AddInstance(ctx context.Context, instantiationRequest InstantiationRequest) error
 	AddInstanceConfiguration(ctx context.Context, instanceId string, config []Configuration) error
