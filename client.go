@@ -264,7 +264,7 @@ func (a *APIClient) doRequest(ctx context.Context, method string, endpoint strin
 	}
 
 	if resp.StatusCode != expectedStatusCode {
-		logger.Error(ErrorUnexpectedStatusCode, "Could not update thing property", "givenStatusCode", resp.StatusCode, "body", string(body))
+		logger.Error(ErrorUnexpectedStatusCode, "Unexpected response status code received", "endpoint", endpoint, "givenStatusCode", resp.StatusCode, "body", string(body))
 		return ErrorUnexpectedStatusCode
 	}
 
