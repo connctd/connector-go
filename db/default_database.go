@@ -42,11 +42,12 @@ var (
 )
 
 var (
-	statementInsertInstallation               = `INSERT INTO installations (id, token) VALUES (?, ?)`
-	statementInsertInstallationConfig         = `INSERT INTO installation_configuration (installation_id, id, value) VALUES (?, ?, ?)`
-	statementGetInstallations                 = `SELECT id FROM installations`
-	statementGetConfigurationByInstallationID = `SELECT id, value FROM installation_configuration WHERE installation_id = ?`
-	statementRemoveInstallationById           = `DELETE FROM installations WHERE id = ?`
+	statementInsertInstallation                       = `INSERT INTO installations (id, token) VALUES (?, ?)`
+	statementInsertInstallationConfig                 = `INSERT INTO installation_configuration (installation_id, id, value) VALUES (?, ?, ?)`
+	statementGetInstallations                         = `SELECT id FROM installations`
+	statementGetConfigurationByInstallationID         = `SELECT id, value FROM installation_configuration WHERE installation_id = ?`
+	statementGetInstallationConfigurationByInstanceID = `SELECT l.id AS id, l.value AS value FROM installation_configuration l, instances i WHERE i.id = ? AND l.installation_id = i.installation_id`
+	statementRemoveInstallationById                   = `DELETE FROM installations WHERE id = ?`
 
 	statementInsertInstance               = `INSERT INTO instances (id, installation_id, token) VALUES (?, ?, ?)`
 	statementGetInstanceByID              = `SELECT id, token, installation_id FROM instances WHERE id = ?`
@@ -55,9 +56,13 @@ var (
 	statementInsertInstanceConfig         = `INSERT INTO instance_configuration (instance_id, id, value) VALUES (?, ?, ?)`
 	statementGetConfigurationByInstanceID = `SELECT id, value FROM instance_configuration WHERE instance_id = ?`
 	statementGetThingsByInstanceID        = `SELECT instance_id, thing_id, external_id FROM instance_thing_mapping WHERE instance_id = ?`
-	statementRemoveInstanceById           = `DELETE FROM instances WHERE id = ?`
+	statementGetThingsByExternalID        = `SELECT instance_id, thing_id, external_id FROM instance_thing_mapping WHERE instance_id = ? AND external_id = ?`
+
+	statementRemoveInstanceById = `DELETE FROM instances WHERE id = ?`
 
 	statementInsertThingId = `INSERT INTO instance_thing_mapping (instance_id, thing_id, external_id) VALUES (?, ?, ?)`
+
+	statementRemoveThingMapping = `DELETE FROM instance_thing_mapping WHERE instance_id = ? AND thing_id = ?`
 )
 
 // The default database layout:
@@ -181,6 +186,16 @@ func (m *DBClient) GetInstallations(ctx context.Context) ([]*connector.Installat
 		installations[i].Configuration = configurations
 	}
 	return installations, nil
+}
+
+// GetInstancesInstallationConfiguration retrieves the configuration of the installation of an instance
+func (m *DBClient) GetInstancesInstallationConfiguration(ctx context.Context, instanceID string) ([]*connector.Configuration, error) {
+	var configurations []*connector.Configuration
+	if err := m.DB.Select(&configurations, statementGetInstallationConfigurationByInstanceID, instanceID); err != nil {
+		return nil, fmt.Errorf("failed to retrieve instances installation configuration: %w", err)
+	}
+
+	return configurations, nil
 }
 
 // RemoveInstallation removes the instance with the given id from the database.
@@ -329,6 +344,29 @@ func (m *DBClient) AddThingMapping(ctx context.Context, instanceId string, thing
 	_, err := m.DB.Exec(statementInsertThingId, instanceId, thingId, externalId)
 	if err != nil {
 		return fmt.Errorf("failed to insert thing id: %w", err)
+	}
+
+	return nil
+}
+
+// GetMappingByExternalId searches for a thing mapping with specific external id
+func (m *DBClient) GetMappingByExternalId(ctx context.Context, instanceId string, externalID string) (*connector.ThingMapping, error) {
+	var thingMapping connector.ThingMapping
+	err := m.DB.Get(&thingMapping, statementGetThingsByExternalID, instanceId, externalID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("failed to retrieve thing by external id %v", err)
+	}
+	return &thingMapping, nil
+}
+
+// RemoveThingMapping removes a thing mapping with given instance and thing id
+func (m *DBClient) RemoveThingMapping(ctx context.Context, instanceID string, thingID string) error {
+	_, err := m.DB.Exec(statementRemoveThingMapping, instanceID, thingID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return connector.ErrorMappingNotFound
+		}
+		return fmt.Errorf("failed to remove mapping: %w", err)
 	}
 
 	return nil

@@ -68,6 +68,7 @@ type Database interface {
 	AddInstallationConfiguration(ctx context.Context, installationId string, config []Configuration) error
 	GetInstallations(ctx context.Context) ([]*Installation, error)
 	RemoveInstallation(ctx context.Context, installationId string) error
+	GetInstancesInstallationConfiguration(ctx context.Context, instanceID string) ([]*Configuration, error)
 
 	AddInstance(ctx context.Context, instantiationRequest InstantiationRequest) error
 	AddInstanceConfiguration(ctx context.Context, instanceId string, config []Configuration) error
@@ -76,7 +77,9 @@ type Database interface {
 	GetInstanceByThingId(ctx context.Context, thingId string) (*Instance, error)
 	GetInstanceConfiguration(ctx context.Context, instanceId string) ([]Configuration, error)
 	GetMappingByInstanceId(ctx context.Context, instanceId string) ([]ThingMapping, error)
+	GetMappingByExternalId(ctx context.Context, instanceId string, externalID string) (*ThingMapping, error)
 	RemoveInstance(ctx context.Context, instanceId string) error
 
 	AddThingMapping(ctx context.Context, instanceID string, thingID string, externalId string) error
+	RemoveThingMapping(ctx context.Context, instanceID string, thingID string) error
 }
